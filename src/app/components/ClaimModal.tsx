@@ -24,7 +24,7 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
       setClaimState('success');
       // Still show toast for feedback
       toast.success(language === 'en' ? 'Claim Successful!' : '领取成功！', {
-        description: `${language === 'en' ? 'Received' : '获得'} ${formatTokenCount(amount)} $HOZHENE`,
+        description: `${language === 'en' ? 'Received' : '获得'} ${formatTokenCount(amount)} $活着呢`,
       });
     }
   };
