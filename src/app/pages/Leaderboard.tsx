@@ -208,7 +208,7 @@ export default function Leaderboard() {
                       </span>
                     </div>
 
-                    {/* $ALIVE */}
+                    {/* $活着呢 */}
                     <div className="flex items-center justify-end">
                       <span className="text-white font-mono text-xs font-bold">
                         {formatTokenCount(player.alive)}

@@ -18,7 +18,7 @@ export function InfoModal({ isOpen, onClose }: InfoModalProps) {
       body: (
         <div className="space-y-6 font-mono text-sm leading-relaxed text-gray-300">
           <h3 className="text-[#00ff41] text-lg font-bold mb-4">
-            {language === 'en' ? '$ALIVE — EXISTENCE IS VALUE' : '$活着呢 — 存在即价值'}
+            {language === 'en' ? '$活着呢 — EXISTENCE IS VALUE' : '$活着呢 — 存在即价值'}
           </h3>
           <p>
             {language === 'en' 
@@ -75,7 +75,7 @@ export function InfoModal({ isOpen, onClose }: InfoModalProps) {
               </div>
               <div className="p-3 text-gray-300">
                 {language === 'en'
-                  ? 'Grows by not claiming $Alive for consecutive days.'
+                  ? 'Grows by not claiming $活着呢 for consecutive days.'
                   : '将 $活着呢 留在待领取箱内则会增长多巴胺系数。'}
               </div>
             </div>
@@ -175,7 +175,7 @@ export function InfoModal({ isOpen, onClose }: InfoModalProps) {
             {/* Footer */}
             <div className="p-4 border-t border-[#00ff41]/30 text-center">
               <p className="text-gray-600 font-mono text-xs">
-                // {language === 'en' ? 'AS LONG AS YOU SURVIVE, YOU EARN $ALIVE' : '只要生存，就能获得$活着呢'}
+                // {language === 'en' ? 'AS LONG AS YOU SURVIVE, YOU EARN $活着呢' : '只要生存，就能获得$活着呢'}
               </p>
             </div>
 

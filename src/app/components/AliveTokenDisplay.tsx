@@ -50,7 +50,7 @@ export function AliveTokenDisplay({ aliveBalance, onClick, className }: AliveTok
             fontVariantNumeric: 'tabular-nums'
           }}
         >
-          {formatTokenCount(aliveBalance)}
+          +{formatTokenCount(aliveBalance)}
         </motion.p>
       </div>
     </motion.button>

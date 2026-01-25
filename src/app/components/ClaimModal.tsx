@@ -1,8 +1,9 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { X } from 'lucide-react';
+import { X, Share2, Twitter } from 'lucide-react';
 import { useGameStore } from '@/app/stores/useGameStore';
 import { toast } from 'sonner';
 import { formatTokenCount } from '@/utils/format';
+import { useState } from 'react';
 
 interface ClaimModalProps {
   isOpen: boolean;
@@ -11,19 +12,39 @@ interface ClaimModalProps {
 
 export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
   const { pendingAlive, dopamineIndex, claimAlive, language } = useGameStore();
+  const [claimState, setClaimState] = useState<'initial' | 'success'>('initial');
+  const [claimedAmount, setClaimedAmount] = useState(0);
 
   const handleClaim = () => {
     if (pendingAlive > 0) {
+      const amount = pendingAlive;
+      setClaimedAmount(amount);
       claimAlive();
-      toast.success('领取成功！', {
-        description: `获得 ${formatTokenCount(pendingAlive)} $活着呢`,
+      // Don't close immediately, switch to success state
+      setClaimState('success');
+      // Still show toast for feedback
+      toast.success(language === 'en' ? 'Claim Successful!' : '领取成功！', {
+        description: `${language === 'en' ? 'Received' : '获得'} ${formatTokenCount(amount)} $HOZHENE`,
       });
-      onClose();
     }
   };
 
+  const handleShare = () => {
+    const text = language === 'en' 
+      ? `I just claimed ${formatTokenCount(claimedAmount)} $活着呢 in the Alive Game! Come and survive with me! @huozheneofficial #AliveGame #Web3`
+      : `我在 Alive Game 中领取了 ${formatTokenCount(claimedAmount)} $活着呢！快来和我一起存活吧！@huozheneofficial #AliveGame #Web3`;
+    
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleClose = () => {
+    setClaimState('initial');
+    onClose();
+  };
+
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isOpen && (
         <>
           {/* 背景遮罩 */}
@@ -32,125 +53,207 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={handleClose}
           />
 
-          {/* 弹窗内容 - 末世科技复古风格 */}
-          <motion.div
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-[400px] bg-black border-2 border-[#00ff41] z-[101]"
-            initial={{ opacity: 0, scale: 0.8, y: -50 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: -50 }}
-            transition={{ duration: 0.3 }}
-          >
-            {/* 关闭按钮 */}
-            <button
-              onClick={onClose}
-              className="absolute -top-3 -right-3 bg-black border-2 border-[#00ff41] text-[#00ff41] p-2 hover:bg-[#00ff41] hover:text-black transition-colors z-10"
+          {claimState === 'initial' ? (
+            /* 初始领取弹窗 - 末世科技复古风格 */
+            <motion.div
+              key="initial-modal"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-[400px] bg-black border-2 border-[#00ff41] z-[101]"
+              initial={{ opacity: 0, scale: 0.8, y: -50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -50 }}
+              transition={{ duration: 0.3 }}
             >
-              <X className="w-5 h-5" />
-            </button>
+              {/* 关闭按钮 */}
+              <button
+                onClick={handleClose}
+                className="absolute -top-3 -right-3 bg-black border-2 border-[#00ff41] text-[#00ff41] p-2 hover:bg-[#00ff41] hover:text-black transition-colors z-10"
+              >
+                <X className="w-5 h-5" />
+              </button>
 
-            {/* 标题栏 */}
-            <div className="bg-[#00ff41] p-3">
-              <h2 className="text-black font-mono text-lg font-bold tracking-wider text-center">
-                {'>'} CLAIM_TOKENS
-              </h2>
-            </div>
-
-            {/* 内容区域 */}
-            <div className="p-6 space-y-6">
-              {/* 可领取的$ALIVE显示 */}
-              <div className="border border-[#00ff41]/30 p-4">
-                <div className="text-gray-400 font-mono text-xs mb-2">
-                  [ PENDING_REWARDS ]
-                </div>
-                <motion.div
-                  className="text-[#00ff41] font-mono text-4xl font-bold text-center"
-                  key={pendingAlive}
-                  initial={{ scale: 1.2, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {formatTokenCount(pendingAlive)}
-                </motion.div>
-                <div className="text-gray-500 font-mono text-sm text-center mt-2">
-                  $活着呢
-                </div>
+              {/* 标题栏 */}
+              <div className="bg-[#00ff41] p-3">
+                <h2 className="text-black font-mono text-lg font-bold tracking-wider text-center">
+                  {'>'} CLAIM_TOKENS
+                </h2>
               </div>
 
-              {/* 多巴胺指数警示 */}
-              <div className="border border-yellow-500/50 bg-yellow-500/5 p-4">
-                <div className="flex items-start gap-3">
-                  <div className="text-yellow-500 text-2xl flex-shrink-0">⚠️</div>
-                  <div className="flex-1">
-                    <div className="text-yellow-500 font-mono text-xs mb-2">
-                      [ DOPAMINE_INDEX ]
-                    </div>
-                    <motion.div
-                      className="text-yellow-400 font-mono text-2xl font-bold mb-2"
-                      key={dopamineIndex}
-                      initial={{ scale: 1.2, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      x{dopamineIndex.toFixed(1)}
-                    </motion.div>
-                    <div className="text-gray-400 font-mono text-xs leading-relaxed">
-                      {language === 'en' ? (
-                        <>
-                          // WARNING: Claiming tokens resets Dopamine Index
-                          <br />
-                          // Restraint and delayed gratification yield higher rewards
-                        </>
-                      ) : (
-                        <>
-                          // 警告：领取代币将重置多巴胺指数
-                          <br />
-                          // 保持克制，延迟满足感可获得更高收益
-                        </>
-                      )}
+              {/* 内容区域 */}
+              <div className="p-6 space-y-6">
+                {/* 可领取的$活着呢显示 */}
+                <div className="border border-[#00ff41]/30 p-4">
+                  <div className="text-gray-400 font-mono text-xs mb-2">
+                    [ PENDING_REWARDS ]
+                  </div>
+                  <motion.div
+                    className="text-[#00ff41] font-mono text-4xl font-bold text-center"
+                    key={pendingAlive}
+                    initial={{ scale: 1.2, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {formatTokenCount(pendingAlive)}
+                  </motion.div>
+                  <div className="text-gray-500 font-mono text-sm text-center mt-2">
+                    $活着呢
+                  </div>
+                </div>
+
+                {/* 多巴胺指数警示 */}
+                <div className="border border-yellow-500/50 bg-yellow-500/5 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="text-yellow-500 text-2xl flex-shrink-0">⚠️</div>
+                    <div className="flex-1">
+                      <div className="text-yellow-500 font-mono text-xs mb-2">
+                        [ DOPAMINE_INDEX ]
+                      </div>
+                      <motion.div
+                        className="text-yellow-400 font-mono text-2xl font-bold mb-2"
+                        key={dopamineIndex}
+                        initial={{ scale: 1.2, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        x{dopamineIndex.toFixed(1)}
+                      </motion.div>
+                      <div className="text-gray-400 font-mono text-xs leading-relaxed">
+                        {language === 'en' ? (
+                          <>
+                            // WARNING: Claiming tokens resets Dopamine Index
+                            <br />
+                            // Restraint and delayed gratification yield higher rewards
+                          </>
+                        ) : (
+                          <>
+                            // 警告：领取代币将重置多巴胺指数
+                            <br />
+                            // 保持克制，延迟满足感可获得更高收益
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                {/* 领取按钮 */}
+                <motion.button
+                  onClick={handleClaim}
+                  disabled={pendingAlive <= 0}
+                  className="w-full bg-black border-2 border-[#00ff41] text-[#00ff41] py-4 font-mono text-lg font-bold hover:bg-[#00ff41] hover:text-black transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black disabled:hover:text-[#00ff41]"
+                  whileHover={pendingAlive > 0 ? { scale: 1.02 } : {}}
+                  whileTap={pendingAlive > 0 ? { scale: 0.98 } : {}}
+                >
+                  [ CLAIM_NOW ]
+                </motion.button>
+
+                {/* 底部提示 */}
+                <div className="border-t border-[#00ff41]/20 pt-4">
+                  <p className="text-gray-600 font-mono text-xs text-center mt-1">
+                    // {language === 'en' ? 'Higher Dopamine Index means earning $活着呢 faster' : '多巴胺指数越高，越能快速获得 $活着呢'}
+                  </p>
+                </div>
               </div>
 
-              {/* 领取按钮 */}
-              <motion.button
-                onClick={handleClaim}
-                disabled={pendingAlive <= 0}
-                className="w-full bg-black border-2 border-[#00ff41] text-[#00ff41] py-4 font-mono text-lg font-bold hover:bg-[#00ff41] hover:text-black transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black disabled:hover:text-[#00ff41]"
-                whileHover={pendingAlive > 0 ? { scale: 1.02 } : {}}
-                whileTap={pendingAlive > 0 ? { scale: 0.98 } : {}}
-              >
-                [ CLAIM_NOW ]
-              </motion.button>
-
-              {/* 底部提示 */}
-              <div className="border-t border-[#00ff41]/20 pt-4">
-                <p className="text-gray-600 font-mono text-xs text-center mt-1">
-                  // {language === 'en' ? 'Higher Dopamine Index means earning $Alive faster' : '多巴胺指数越高，越能快速获得 $活着呢'}
-                </p>
-              </div>
-            </div>
-
-            {/* CRT 扫描线效果 */}
+              {/* CRT 扫描线效果 */}
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 65, 0.03) 2px, rgba(0, 255, 65, 0.03) 4px)',
+                }}
+                animate={{
+                  opacity: [0.3, 0.6, 0.3],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'linear',
+                }}
+              />
+            </motion.div>
+          ) : (
+            /* 成功分享弹窗 - 绿色生存风格 */
             <motion.div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background:
-                  'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 65, 0.03) 2px, rgba(0, 255, 65, 0.03) 4px)',
-              }}
-              animate={{
-                opacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'linear',
-              }}
-            />
-          </motion.div>
+              key="success-modal"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-[400px] bg-[#001a05] border-4 border-[#00ff41] rounded-xl z-[101] overflow-hidden"
+              initial={{ opacity: 0, scale: 0.8, y: -50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -50 }}
+              transition={{ type: "spring", bounce: 0.5 }}
+            >
+              {/* 绿色背景光效 */}
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 animate-pulse" />
+              <div className="absolute -top-20 -left-20 w-40 h-40 bg-[#00ff41] rounded-full blur-[100px] opacity-10" />
+              <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-[#00ff41] rounded-full blur-[100px] opacity-10" />
+
+              <div className="relative p-8 flex flex-col items-center">
+                {/* 成功图标 */}
+                <motion.div 
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", bounce: 0.6, delay: 0.2 }}
+                  className="w-20 h-20 bg-gradient-to-br from-[#00ff41] to-[#008f11] rounded-full flex items-center justify-center mb-6 border-4 border-[#00ff41] shadow-[0_0_20px_rgba(0,255,65,0.4)]"
+                >
+                   <span className="text-4xl filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">❤️</span>
+                </motion.div>
+
+                {/* 标题 */}
+                <motion.h2 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-[#00ff41] font-bold text-3xl mb-2 text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                  style={{ textShadow: '0 0 10px rgba(0, 255, 65, 0.4)' }}
+                >
+                  {language === 'en' ? 'CLAIM SUCCESS!' : '领取成功！'}
+                </motion.h2>
+
+                {/* 获得金额 */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.6, type: "spring" }}
+                  className="mb-8 text-center"
+                >
+                  <p className="text-[#00ff41]/80 text-sm mb-2 font-mono">
+                    {language === 'en' ? 'You received' : '获得奖励'}
+                  </p>
+                  <div className="text-5xl font-bold text-white mb-2 drop-shadow-[0_4px_0_rgba(0,100,25,0.8)]" style={{ fontFamily: 'Arial, sans-serif' }}>
+                    {formatTokenCount(claimedAmount)}
+                  </div>
+                  <p className="text-[#00ff41] font-mono text-lg font-bold">
+                    $活着呢
+                  </p>
+                </motion.div>
+                
+                {/* 分享按钮 (Share on X) */}
+                <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                  onClick={handleShare}
+                  className="w-full bg-black text-[#00ff41] border border-[#00ff41] py-4 rounded-xl font-bold text-lg mb-4 flex items-center justify-center gap-2 hover:bg-[#00ff41] hover:text-black transition-all transform hover:scale-105 shadow-[0_0_15px_rgba(0,255,65,0.2)]"
+                >
+                  <Twitter className="w-5 h-5" />
+                  {language === 'en' ? 'Share on X' : '分享到 X'}
+                </motion.button>
+
+                {/* 稍后分享按钮 (Close) */}
+                <motion.button
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1 }}
+                  onClick={handleClose}
+                  className="text-[#00ff41]/50 hover:text-[#00ff41] font-mono text-sm transition-colors"
+                >
+                  {language === 'en' ? 'Share Later' : '稍后分享'}
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
         </>
       )}
     </AnimatePresence>

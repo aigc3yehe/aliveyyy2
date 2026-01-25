@@ -28,6 +28,7 @@ import imgHeartBtn from '@/assets/336cb1ad470709b7da3a846b993fc5d47ddbebb7.webp'
 import imgHeartBtn1 from '@/assets/68435f1d5091d26adec7c518081a885e850d4cad.webp';
 import imgHeartBtn2 from '@/assets/384a51cade3fbca94390d4d3a08e842c3847600c.webp';
 import imgHealth from '@/assets/healthbar_compressed.webp';
+import imgShareX from '@/assets/xx_compressed.webp';
 import { useGameStore } from '@/app/stores/useGameStore';
 import { useDecorationStore } from '@/app/stores/useDecorationStore';
 import { useGameLoop } from '@/app/hooks/useGameLoop';
@@ -498,6 +499,18 @@ export default function Home() {
                   </div>
                 </div>
 
+                {/* Twitter Link - Right aligned */}
+                <div className="absolute right-[34px] top-[24px] z-20">
+                  <a 
+                    href="https://twitter.com/huozheneofficial" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-[#00ff41] font-mono text-xs font-bold drop-shadow-[0_0_4px_rgba(0,255,65,0.8)] hover:underline"
+                  >
+                    @huozheneofficial
+                  </a>
+                </div>
+
                 {/* Health血条 - Updated dimensions for healthbar_compressed scaled 70% (216x120) - Internal bar width +5% (110->116) */}
                 <div className="absolute left-[12px] top-[41px] w-[216px] h-[120px]">
                   {/* 血条背景 */}
@@ -542,7 +555,7 @@ export default function Home() {
                   />
                 </div>
 
-                {/* $ALIVE代币显示 - 右上角 - 失联时不显示Token Box */}
+                {/* $活着呢代币显示 - 右上角 - 失联时不显示Token Box */}
                 {isAlive && (
                   <div className="absolute right-[37px] top-[55px] flex flex-col items-end gap-2 z-30">
                     {/* 功能按钮区域 - 并排显示 */}
@@ -601,14 +614,32 @@ export default function Home() {
                       </motion.button>
                     </div>
 
-                    <AliveTokenDisplay 
-                      aliveBalance={aliveBalance} 
-                      onClick={() => {
-                        playSound(soundToken);
-                        setIsClaimModalOpen(true);
-                      }}
-                      className="w-[104px] h-[104px]"
-                    />
+                    <div className="flex flex-col items-end gap-2">
+                       <AliveTokenDisplay 
+                         aliveBalance={aliveBalance} 
+                         onClick={() => {
+                           playSound(soundToken);
+                           setIsClaimModalOpen(true);
+                         }}
+                         className="w-[104px] h-[104px]"
+                       />
+                       
+                       {/* Share on X Button */}
+                       <motion.button
+                         onClick={() => {
+                            const rate = new Intl.NumberFormat('en-US').format(24 * 10 * dopamineIndex);
+                            const text = language === 'en'
+                              ? `My current mining rate is ${rate} $活着呢/day in Alive Game! Can you survive longer than me? @huozheneofficial #AliveGame #Web3`
+                              : `我在 Alive Game 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@huozheneofficial #AliveGame #Web3`;
+                            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+                         }}
+                         className="w-[104px] h-auto rounded-sm overflow-hidden shadow-lg border border-black"
+                         whileHover={{ scale: 1.05 }}
+                         whileTap={{ scale: 0.95 }}
+                       >
+                         <img src={imgShareX} alt="Share on X" className="w-full h-full object-contain" />
+                       </motion.button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -622,6 +653,32 @@ export default function Home() {
               transform: `scale(${bottomScale})`,
             }}
           >
+            {/* Mining Rate Display - Absolute Top of this container */}
+            <div className="absolute -top-[50px] left-0 right-0 flex flex-col items-center gap-1 z-30">
+               <div className="flex items-center justify-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-[#00ff41]/20 shadow-[0_0_10px_rgba(0,255,65,0.1)]">
+                 <p className="text-[#00ff41]/90 font-mono text-[11px] md:text-xs text-center whitespace-nowrap">
+                   {language === 'en' ? 'Current mining rate' : '当前挖矿速率'}
+                   <span className="text-[#00ff41] font-bold ml-1.5">
+                     +{new Intl.NumberFormat('en-US').format(24 * 10 * dopamineIndex)} {language === 'en' ? '$活着呢/day' : '$活着呢/天'}
+                   </span>
+                 </p>
+                 <div className="w-[1px] h-3 bg-[#00ff41]/30 mx-1"></div>
+                 <button 
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     const rate = new Intl.NumberFormat('en-US').format(24 * 10 * dopamineIndex);
+                     const text = language === 'en'
+                       ? `My current mining rate is ${rate} $活着呢/day in Alive Game! Can you survive longer than me? @huozheneofficial #AliveGame #Web3`
+                       : `我在 Alive Game 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@huozheneofficial #AliveGame #Web3`;
+                     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+                   }}
+                   className="text-[#00ff41] hover:text-white underline font-mono text-[11px] md:text-xs transition-colors flex items-center gap-1"
+                 >
+                   {language === 'en' ? 'Tell your friends!' : '告诉你的朋友！'}
+                 </button>
+               </div>
+            </div>
+
             {/* Store按钮 - 左侧 */}
             <div className="relative w-[125px] h-[116px] flex-shrink-0">
               <motion.button
@@ -692,7 +749,7 @@ export default function Home() {
               )}
             </div>
 
-            {/* $ALIVE按钮 - 右侧 */}
+            {/* $活着呢按钮 - 右侧 */}
             <div className="relative w-[124px] h-[116px] flex-shrink-0">
               <motion.button
                 onClick={() => {
