@@ -30,8 +30,8 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
       const amount = claimable;
 
       try {
-        await claimRewards(walletClient);
-        setClaimedAmount(amount);
+        const result = await claimRewards(walletClient);
+        setClaimedAmount(result.amount);
         setClaimState('success');
         toast.success(language === 'en' ? 'Claim Successful!' : '领取成功！', {
           description: `${language === 'en' ? 'Received' : '获得'} ${formatTokenCount(amount)} $活着呢`,

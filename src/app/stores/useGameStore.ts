@@ -58,7 +58,7 @@ interface GameState {
   tick: () => void;
   checkIn: () => Promise<void>; // Needs to be async
   updateHpFromTime: () => void;
-  claimRewards: (walletClient: WalletClient) => Promise<string>; // Changed signature
+  claimRewards: (walletClient: WalletClient) => Promise<{ hash: string; amount: number }>; // Changed signature to return amount
   buyItem: (itemId: string, price: number) => void;
   fetchLeaderboard: () => Promise<LeaderboardEntry[]>;
   fetchGlobalStats: () => Promise<void>;
@@ -276,7 +276,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       const { fetchUserStatus } = get();
       setTimeout(() => fetchUserStatus(claim.account), 2000);
 
-      return hash;
+      return { hash, amount: parseFloat(claim.amount) / 1e18 };
     } catch (error) {
       console.error('Claim failed:', error);
       throw error;
