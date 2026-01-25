@@ -1,18 +1,32 @@
+import { useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useGameStore } from '@/app/stores/useGameStore';
+import { formatTokenCount } from '@/utils/format';
 
 interface UnconnectedScreenProps {
   language?: 'en' | 'cn';
 }
 
 export function UnconnectedScreen({ language = 'en' }: UnconnectedScreenProps) {
-  // const { connectWallet } = useGameStore(); // Removed
+  const { globalStats, fetchGlobalStats } = useGameStore();
 
-  // 模拟的全网实时数据
-  const globalStats = {
-    alivePlayers: 12405,
-    todayPool: 845200,
-    todayDead: 128,
+  useEffect(() => {
+    fetchGlobalStats();
+    // Poll every 30 seconds
+    const interval = setInterval(fetchGlobalStats, 30000);
+    return () => clearInterval(interval);
+  }, [fetchGlobalStats]);
+
+  // Default fallback if loading
+  const stats = globalStats ? {
+    alivePlayers: globalStats.aliveUsers,
+    todayPool: parseFloat(globalStats.dailyPoolRemaining) / 1e18,
+    todayDead: globalStats.disconnectedUsers,
+  } : {
+    alivePlayers: 0,
+    todayPool: 0,
+    todayDead: 0,
   };
 
   return (
@@ -244,11 +258,11 @@ export function UnconnectedScreen({ language = 'en' }: UnconnectedScreenProps) {
                   </span>
                   <motion.span
                     className="text-green-400 font-mono text-lg md:text-xl font-bold"
-                    key={globalStats.alivePlayers}
+                    key={stats.alivePlayers}
                     initial={{ scale: 1.2 }}
                     animate={{ scale: 1 }}
                   >
-                    {globalStats.alivePlayers.toLocaleString()}
+                    {stats.alivePlayers.toLocaleString()}
                   </motion.span>
                 </motion.div>
 
@@ -258,7 +272,7 @@ export function UnconnectedScreen({ language = 'en' }: UnconnectedScreenProps) {
                     {language === 'en' ? '💰 Today\'s Prize Pool' : '💰 今日奖池'}
                   </span>
                   <span className="text-yellow-400 font-mono text-lg md:text-xl font-bold">
-                    {globalStats.todayPool.toLocaleString()} $活着呢
+                    {formatTokenCount(stats.todayPool)}
                   </span>
                 </div>
 
@@ -286,7 +300,7 @@ export function UnconnectedScreen({ language = 'en' }: UnconnectedScreenProps) {
                       repeat: Infinity,
                     }}
                   >
-                    {globalStats.todayDead}
+                    {stats.todayDead}
                   </motion.span>
                 </motion.div>
               </div>

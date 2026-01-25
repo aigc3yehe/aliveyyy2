@@ -13,7 +13,7 @@ interface UserStatusResponse {
   hasDefibrillator: boolean;
 }
 
-interface DashboardSummaryResponse {
+export interface DashboardSummaryResponse {
   aliveUsers: number;
   disconnectedUsers: number;
   dailyPoolRemaining: string;
@@ -34,9 +34,9 @@ interface GameState {
   survivalMultiplier: number;
   audioState: 'all' | 'sfx_only' | 'mute';
   language: 'en' | 'cn';
-  claimable: number;
-  userEmissionRate: number;
+  claimable: number; userEmissionRate: number;
   lastTickTime: number;
+  globalStats: DashboardSummaryResponse | null;
 
   setHp: (hp: number) => void;
   setLastCheckInTime: (time: number) => void;
@@ -57,6 +57,7 @@ interface GameState {
   claimAlive: () => void;
   buyItem: (itemId: string, price: number) => void;
   fetchLeaderboard: () => Promise<LeaderboardEntry[]>;
+  fetchGlobalStats: () => Promise<void>;
 }
 
 export interface LeaderboardEntry {
@@ -84,6 +85,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   claimable: 0,
   userEmissionRate: 0,
   lastTickTime: Date.now(),
+  globalStats: null,
 
   setHp: (hp) => set({ hp }),
   setLastCheckInTime: (time) => set({ lastCheckInTime: time }),
@@ -157,6 +159,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         userEmissionRate: emissionRate,
         lastTickTime: Date.now(),
         lastCheckInTime: Date.now() / 1000,
+        globalStats: dashboardData,
       });
     } catch (error) {
       console.error('Failed to fetch user status or global stats:', error);
@@ -220,6 +223,15 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch (error) {
       console.error('Failed to fetch leaderboard:', error);
       return [];
+    }
+  },
+
+  fetchGlobalStats: async () => {
+    try {
+      const response = await api.get<{ data: DashboardSummaryResponse }>('/dashboard/summary');
+      set({ globalStats: response.data.data });
+    } catch (error) {
+      console.error('Failed to fetch global stats:', error);
     }
   },
 }));
