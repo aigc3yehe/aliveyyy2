@@ -11,8 +11,6 @@ interface GameState {
   dopamineIndex: number;
   pendingAlive: number;
   survivalMultiplier: number;
-  isConnected: boolean;
-  walletAddress: string;
   audioState: 'all' | 'sfx_only' | 'mute';
   language: 'en' | 'cn';
   setHp: (hp: number) => void;
@@ -24,10 +22,8 @@ interface GameState {
   setDopamineIndex: (index: number) => void;
   setPendingAlive: (amount: number) => void;
   setSurvivalMultiplier: (multiplier: number) => void;
-  setIsConnected: (isConnected: boolean) => void;
   cycleAudioState: () => void;
   setLanguage: (language: 'en' | 'cn') => void;
-  connectWallet: () => void;
   checkIn: () => void;
   updateHpFromTime: () => void;
   claimAlive: () => void;
@@ -45,8 +41,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   dopamineIndex: 1,
   pendingAlive: 5280,
   survivalMultiplier: 1.0,
-  isConnected: false,
-  walletAddress: '0x71C...9A23',
   audioState: 'sfx_only',
   language: 'en',
 
@@ -59,7 +53,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   setDopamineIndex: (index) => set({ dopamineIndex: index }),
   setPendingAlive: (amount) => set({ pendingAlive: amount }),
   setSurvivalMultiplier: (multiplier) => set({ survivalMultiplier: multiplier }),
-  setIsConnected: (isConnected) => set({ isConnected: isConnected }),
   cycleAudioState: () => set((state) => {
     const nextState = {
       all: 'sfx_only',
@@ -70,15 +63,13 @@ export const useGameStore = create<GameState>((set, get) => ({
   }),
   setLanguage: (language) => set({ language }),
 
-  connectWallet: () => {
-    // 这里可以添加连接钱包的逻辑
-    set({ isConnected: true });
-  },
+
+
 
   checkIn: () => {
     const state = get();
     // Allow check-in regardless of current HP
-    
+
     const now = Date.now() / 1000;
     let newLastCheckInTime = state.lastCheckInTime;
 
@@ -97,8 +88,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     // 每次签到增加待领取的$活着呢和多巴胺指数
     const aliveReward = 10 * state.dopamineIndex;
-    
-    set({ 
+
+    set({
       hp: newHp,
       lastCheckInTime: newLastCheckInTime,
       streaks: state.streaks + 1,
@@ -113,9 +104,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     const now = Date.now() / 1000;
     const hoursPassed = (now - state.lastCheckInTime) / 3600;
     const calculatedHp = Math.max(0, state.maxHp - Math.floor(hoursPassed));
-    
+
     if (calculatedHp !== state.hp) {
-      set({ 
+      set({
         hp: calculatedHp,
         isAlive: calculatedHp > 0
       });

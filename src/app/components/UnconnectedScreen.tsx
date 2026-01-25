@@ -1,21 +1,12 @@
 import { motion } from 'motion/react';
-import { Lock } from 'lucide-react';
-import { useGameStore } from '@/app/stores/useGameStore';
-import { toast } from 'sonner';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 interface UnconnectedScreenProps {
   language?: 'en' | 'cn';
 }
 
 export function UnconnectedScreen({ language = 'en' }: UnconnectedScreenProps) {
-  const { connectWallet } = useGameStore();
-
-  const handleConnect = () => {
-    toast.success(language === 'en' ? 'Neural Link Established' : '神经连接已建立', {
-      description: language === 'en' ? 'Welcome to Proof of Survival Protocol' : '欢迎进入生存证明协议',
-    });
-    connectWallet();
-  };
+  // const { connectWallet } = useGameStore(); // Removed
 
   // 模拟的全网实时数据
   const globalStats = {
@@ -132,70 +123,110 @@ export function UnconnectedScreen({ language = 'en' }: UnconnectedScreenProps) {
             {/* 副标题 */}
             <div className="text-center space-y-2">
               <p className="text-[#00ff41] font-mono text-base md:text-lg leading-relaxed">
-                {language === 'en' 
-                  ? 'Start protocol to get $活着呢' 
+                {language === 'en'
+                  ? 'Start protocol to get $活着呢'
                   : '启动协议开始获取$活着呢'}
               </p>
             </div>
 
             {/* 连接按钮 */}
-            <motion.button
-              onClick={handleConnect}
-              className="w-full bg-gradient-to-br from-[#00ff41] via-[#00d636] to-[#00cc33] border-2 border-[#00ff41] text-black py-4 md:py-5 font-mono text-lg md:text-xl font-bold relative overflow-hidden group shadow-lg"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              style={{
-                boxShadow: '0 0 30px rgba(0, 255, 65, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.1)',
+            <ConnectButton.Custom>
+              {({
+                account,
+                chain,
+                openAccountModal,
+                openChainModal,
+                openConnectModal,
+                authenticationStatus,
+                mounted,
+              }) => {
+                const ready = mounted && authenticationStatus !== 'loading';
+                const connected =
+                  ready &&
+                  account &&
+                  chain &&
+                  (!authenticationStatus ||
+                    authenticationStatus === 'authenticated');
+
+                return (
+                  <div
+                    {...(!ready && {
+                      'aria-hidden': true,
+                      'style': {
+                        opacity: 0,
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                      },
+                    })}
+                  >
+                    {(() => {
+                      if (!connected) {
+                        return (
+                          <motion.button
+                            onClick={openConnectModal}
+                            className="w-full bg-gradient-to-br from-[#00ff41] via-[#00d636] to-[#00cc33] border-2 border-[#00ff41] text-black py-4 md:py-5 font-mono text-lg md:text-xl font-bold relative overflow-hidden group shadow-lg"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            style={{
+                              boxShadow: '0 0 30px rgba(0, 255, 65, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.1)',
+                            }}
+                          >
+                            {/* 呼吸灯效果 */}
+                            <motion.div
+                              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                              animate={{
+                                x: ['-200%', '200%'],
+                              }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: 'linear',
+                              }}
+                            />
+                            {/* 脉冲光晕 */}
+                            <motion.div
+                              className="absolute inset-0 bg-[#00ff41]"
+                              animate={{
+                                opacity: [0.2, 0.5, 0.2],
+                                scale: [1, 1.05, 1],
+                              }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                              }}
+                            />
+                            <span className="relative z-10 flex items-center justify-center gap-2 drop-shadow-lg">
+                              <motion.div
+                                animate={{
+                                  rotate: [0, 360],
+                                }}
+                                transition={{
+                                  duration: 3,
+                                  repeat: Infinity,
+                                  ease: 'linear',
+                                }}
+                              >
+                                🔓
+                              </motion.div>
+                              CONNECT WALLET
+                            </span>
+                          </motion.button>
+                        );
+                      }
+                      return null; // Should not happen in UnconnectedScreen, but good practice
+                    })()}
+                  </div>
+                );
               }}
-            >
-              {/* 呼吸灯效果 */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                animate={{
-                  x: ['-200%', '200%'],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'linear',
-                }}
-              />
-              {/* 脉冲光晕 */}
-              <motion.div
-                className="absolute inset-0 bg-[#00ff41]"
-                animate={{
-                  opacity: [0.2, 0.5, 0.2],
-                  scale: [1, 1.05, 1],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              />
-              <span className="relative z-10 flex items-center justify-center gap-2 drop-shadow-lg">
-                <motion.div
-                  animate={{
-                    rotate: [0, 360],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: 'linear',
-                  }}
-                >
-                  🔓
-                </motion.div>
-                CONNECT WALLET
-              </span>
-            </motion.button>
+            </ConnectButton.Custom>
 
             {/* 全网数据展示 */}
             <div className="border-t-2 border-gray-800 pt-6 space-y-3">
               <p className="text-gray-500 font-mono text-xs text-center mb-4">
                 {language === 'en' ? '> GLOBAL_STATS_REALTIME' : '> 全网实时数据'}
               </p>
-              
+
               <div className="grid grid-cols-1 gap-3">
                 {/* 存活玩家 */}
                 <motion.div
@@ -264,8 +295,8 @@ export function UnconnectedScreen({ language = 'en' }: UnconnectedScreenProps) {
             {/* 底部提示 */}
             <div className="border-t border-gray-800 pt-4">
               <p className="text-gray-600 font-mono text-xs text-center leading-relaxed">
-                {language === 'en' 
-                  ? '// Lives are lost every minute' 
+                {language === 'en'
+                  ? '// Lives are lost every minute'
                   : '// 每分钟都有人在死亡边缘'}
               </p>
             </div>

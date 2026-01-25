@@ -66,7 +66,7 @@ const DECORATION_ASSETS: Record<string, Record<string, string>> = {
   photo: {
     default: imgLayerPhoto,
   },
-    player: {
+  player: {
     default: imgLayerPlayer,
     player2: imgLayerPlayer2,
     playerdef: imgLayerPlayerDef,
@@ -86,9 +86,18 @@ const DECORATION_ASSETS: Record<string, Record<string, string>> = {
   },
 };
 
+import { useAuth } from '@/app/hooks/useAuth';
+import { useAccount } from 'wagmi';
+
 export default function Home() {
   const navigate = useNavigate();
-  const { hp, maxHp, aliveBalance, isAlive, streaks, survivalMultiplier, dopamineIndex, isConnected, audioState, language, checkIn, setIsConnected, cycleAudioState, setLanguage, walletAddress } = useGameStore();
+  const { isConnected, address: walletAddress } = useAccount();
+  const { isAuthenticated, isLoggingIn, login, logout } = useAuth();
+
+  // Use Authenticated state for game access instead of just wallet connection
+  const hasAccess = isConnected && isAuthenticated;
+
+  const { hp, maxHp, aliveBalance, isAlive, streaks, survivalMultiplier, dopamineIndex, audioState, language, checkIn, cycleAudioState, setLanguage } = useGameStore();
   const { config: decorationConfig, isLoading: isDecorationLoading, fetchDecorations, layerOverrides, handleLayerClick, setLayerOverride, clearLayerOverride } = useDecorationStore();
   const [bottomScale, setBottomScale] = useState(1);
   const [topScale, setTopScale] = useState(1);
@@ -100,7 +109,7 @@ export default function Home() {
   const [floatingTexts, setFloatingTexts] = useState<{ id: number; x: number; y: number }[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const playSound = useSound();
-  
+
   useGameLoop();
 
   // Load decorations on mount
@@ -108,12 +117,33 @@ export default function Home() {
     fetchDecorations();
   }, [fetchDecorations]);
 
+  /* Login Logic with Retry Limit */
+  const [retryCount, setRetryCount] = useState(0);
+
+  // Reset retry count when wallet address changes
+  useEffect(() => {
+    setRetryCount(0);
+  }, [walletAddress]);
+
+  // Login Trigger: If connected but not authenticated, try to login
+  useEffect(() => {
+    if (isConnected && !isAuthenticated && !isLoggingIn && retryCount < 3) {
+      const timer = setTimeout(async () => {
+        const success = await login();
+        if (!success) {
+          setRetryCount(prev => prev + 1);
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, isAuthenticated, isLoggingIn, login, retryCount]);
+
   // Login Sound Effect
   useEffect(() => {
-    if (isConnected) {
+    if (hasAccess) {
       playSound(soundLogin);
     }
-  }, [isConnected, playSound]);
+  }, [hasAccess, playSound]);
 
   // Reset dismissed state when player revives
   useEffect(() => {
@@ -129,11 +159,11 @@ export default function Home() {
         const containerWidth = containerRef.current.offsetWidth;
         // 设计宽度505px
         const designWidth = 505;
-        
+
         if (containerWidth !== designWidth) {
           // Calculate scale ratio based on container width vs design width
           // Allow scale > 1 for large screens, and scale < 1 for small mobile screens
-          const scale = containerWidth / designWidth; 
+          const scale = containerWidth / designWidth;
           setBottomScale(scale);
           setTopScale(scale);
         } else {
@@ -147,7 +177,7 @@ export default function Home() {
     window.addEventListener('resize', updateScale);
     // 使用timeout确保容器已经渲染
     const timer = setTimeout(updateScale, 100);
-    
+
     return () => {
       window.removeEventListener('resize', updateScale);
       clearTimeout(timer);
@@ -161,22 +191,22 @@ export default function Home() {
     const spawnText = () => {
       // Random interval between 3.2s (3200ms) and 16s (16000ms) (Original 2s-10s + 60%)
       const interval = Math.random() * 12800 + 3200;
-      
+
       timeoutId = setTimeout(() => {
         if (isConnected && isAlive) {
-           const id = Date.now();
-           // Random position in full effective area
-           // Left: 10% - 90%, Top: 10% - 90% (relative to container)
-           const x = 10 + Math.random() * 80; 
-           const y = 10 + Math.random() * 80;
+          const id = Date.now();
+          // Random position in full effective area
+          // Left: 10% - 90%, Top: 10% - 90% (relative to container)
+          const x = 10 + Math.random() * 80;
+          const y = 10 + Math.random() * 80;
 
-           setFloatingTexts(prev => [...prev, { id, x, y }]);
-           playSound(soundCoin);
+          setFloatingTexts(prev => [...prev, { id, x, y }]);
+          playSound(soundCoin);
 
-           // Auto remove after animation
-           setTimeout(() => {
-             setFloatingTexts(prev => prev.filter(item => item.id !== id));
-           }, 2000);
+          // Auto remove after animation
+          setTimeout(() => {
+            setFloatingTexts(prev => prev.filter(item => item.id !== id));
+          }, 2000);
         }
         spawnText(); // Schedule next
       }, interval);
@@ -192,32 +222,32 @@ export default function Home() {
     if (!isConnected || !isAlive) return;
 
     const checkRandomEvents = () => {
-       // Combined Random Event (30% chance every 15s)
-       // Play sound AND switch player image simultaneously
-       if (Math.random() < 0.3) {
-          // 1. Play Sound
-          const sounds = [soundFart, soundTyping, soundYawning];
-          const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
-          playSound(randomSound);
+      // Combined Random Event (30% chance every 15s)
+      // Play sound AND switch player image simultaneously
+      if (Math.random() < 0.3) {
+        // 1. Play Sound
+        const sounds = [soundFart, soundTyping, soundYawning];
+        const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+        playSound(randomSound);
 
-          // 2. Switch Player Image
-          // Use KEYS from DECORATION_ASSETS.player, not the image objects themselves
-          const playerKeys = ['player2', 'playerdef', 'player03', 'player04', 'player05'];
-          const randomKey = playerKeys[Math.floor(Math.random() * playerKeys.length)];
-          
-          setLayerOverride('player', randomKey);
-          
-          // Switch back after 3 seconds
-          setTimeout(() => {
-            clearLayerOverride('player');
-          }, 3000);
-       }
+        // 2. Switch Player Image
+        // Use KEYS from DECORATION_ASSETS.player, not the image objects themselves
+        const playerKeys = ['player2', 'playerdef', 'player03', 'player04', 'player05'];
+        const randomKey = playerKeys[Math.floor(Math.random() * playerKeys.length)];
+
+        setLayerOverride('player', randomKey);
+
+        // Switch back after 3 seconds
+        setTimeout(() => {
+          clearLayerOverride('player');
+        }, 3000);
+      }
     };
 
-    const timer = setInterval(checkRandomEvents, 15000); 
-    
+    const timer = setInterval(checkRandomEvents, 15000);
+
     // Initial check (optional, let's wait for interval)
-    
+
     return () => clearInterval(timer);
   }, [isConnected, isAlive, playSound, setLayerOverride, clearLayerOverride]);
 
@@ -235,7 +265,7 @@ export default function Home() {
     const heartImages = [imgHeartBtn1, imgHeartBtn2];
     const randomHeart = heartImages[Math.floor(Math.random() * heartImages.length)];
     setCurrentHeartImg(randomHeart);
-    
+
     // 300ms后恢复默认图片
     setTimeout(() => {
       setCurrentHeartImg(imgHeartBtn);
@@ -245,9 +275,9 @@ export default function Home() {
     checkIn();
 
     if (hp < maxHp) {
-       toast.success(language === 'en' ? 'Check-in successful! HP +1' : '签到/复活成功！HP +1', {
-         description: `${language === 'en' ? 'Current HP' : '当前HP'}: ${Math.min(maxHp, hp + 1)}/${maxHp}`,
-       });
+      toast.success(language === 'en' ? 'Check-in successful! HP +1' : '签到/复活成功！HP +1', {
+        description: `${language === 'en' ? 'Current HP' : '当前HP'}: ${Math.min(maxHp, hp + 1)}/${maxHp}`,
+      });
     } else {
       // HP已满，只显示提示
       toast.success(language === 'en' ? 'HP Full! Tokens Earned' : 'HP已满！获得Token奖励', {
@@ -326,15 +356,15 @@ export default function Home() {
               >
                 {language === 'en' ? 'CONNECTION LOST' : '信号丢失'}
               </motion.p>
-              
+
               <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-red-500/30 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
                 <p className="text-white text-xl font-bold mb-6">
                   {language === 'en' ? 'Vital Signs Lost' : '检测到生命体征消失'}
                 </p>
                 <div className="space-y-4 text-gray-300 mb-8">
                   <p>
-                    {language === 'en' 
-                      ? 'Please continue pressing the HEART button to activate/accumulate Tokens.' 
+                    {language === 'en'
+                      ? 'Please continue pressing the HEART button to activate/accumulate Tokens.'
                       : '请持续按压心脏以激活/积累Token'}
                   </p>
                   <p className="text-sm text-gray-500">
@@ -343,7 +373,7 @@ export default function Home() {
                       : '持续手动按压可恢复生命值'}
                   </p>
                 </div>
-                
+
                 <motion.button
                   onClick={() => setIsLostContactDismissed(true)}
                   className="w-full bg-stone-800 hover:bg-stone-700 text-white py-4 rounded-xl font-bold tracking-wide transition-colors border border-stone-600"
@@ -370,84 +400,84 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
         >
-              {/* 房间背景 - 分层渲染，无论生死都渲染，死时显示deadman */}
-              <div className="absolute inset-0">
-                {/* Loading skeleton */}
-                {isDecorationLoading && (
-                  <div className="absolute inset-0 bg-[#1a1a1a] flex items-center justify-center z-10">
-                    <div className="w-12 h-12 border-4 border-[#00ff41]/30 border-t-[#00ff41] rounded-full animate-spin" />
-                  </div>
-                )}
-                
-                {/* Layer 6: 最底层背景 (total_bg) */}
-                <img 
-                  src={DECORATION_ASSETS.background[isAlive ? (layerOverrides.background || decorationConfig.background) : 'default']} 
-                  alt="Background" 
-                  className="absolute inset-0 w-full h-full object-cover"
-                  style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
-                />
-                {/* Layer 5: 全息显示屏 (Holographic display) - with breathing cyan glow */}
-                <img 
-                  src={DECORATION_ASSETS.holographic[isAlive ? (layerOverrides.holographic || decorationConfig.holographic) : 'default']} 
-                  alt="Holographic Display" 
-                  className="absolute inset-0 w-full h-full object-cover animate-holographic-glow"
-                  style={{ 
-                    filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)',
-                  }}
-                />
-                {/* Layer 4: 照片 (photo) */}
-                <img 
-                  src={DECORATION_ASSETS.photo[isAlive ? (layerOverrides.photo || decorationConfig.photo) : 'default']} 
-                  alt="Photo" 
-                  className="absolute inset-0 w-full h-full object-cover"
-                  style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
-                />
-                {/* Layer 3: 玩家 (player) */}
-                <img 
-                  src={DECORATION_ASSETS.player[isAlive ? (layerOverrides.player || decorationConfig.player) : 'deadman']} 
-                  alt="Player" 
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                  style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
-                />
-                {/* Layer 2: 床 (bed) */}
-                <img 
-                  src={DECORATION_ASSETS.bed[isAlive ? (layerOverrides.bed || decorationConfig.bed) : 'default']} 
-                  alt="Bed" 
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                  style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
-                />
-                {/* Layer 1: 最顶层炉子 (stove) */}
-                <img 
-                  src={DECORATION_ASSETS.stove[isAlive ? (layerOverrides.stove || decorationConfig.stove) : 'default']} 
-                  alt="Stove" 
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                  style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
-                />
-                
-                {/* Interaction Click Zones (z-20) */}
-                <div className="absolute inset-0 z-20">
-                  {/* Bed Click Zone: Left 50%, Bottom 66% */}
-                  <div 
-                    className="absolute left-0 bottom-0 w-1/2 h-2/3 cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      console.log('[Home] Bed zone clicked!');
-                      handleLayerClick('bed');
-                    }}
-                  />
-                  
-                  {/* Player Click Zone: Roughly center bottom area (visual estimate) */}
-                  {/* Positioned to overlap parts of the bed zone if needed, or distinct */}
-                  <div 
-                    className="absolute left-[35%] bottom-[10%] w-[30%] h-[60%] cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      console.log('[Home] Player zone clicked!');
-                      handleLayerClick('player');
-                    }}
-                  />
-                </div>
+          {/* 房间背景 - 分层渲染，无论生死都渲染，死时显示deadman */}
+          <div className="absolute inset-0">
+            {/* Loading skeleton */}
+            {isDecorationLoading && (
+              <div className="absolute inset-0 bg-[#1a1a1a] flex items-center justify-center z-10">
+                <div className="w-12 h-12 border-4 border-[#00ff41]/30 border-t-[#00ff41] rounded-full animate-spin" />
               </div>
+            )}
+
+            {/* Layer 6: 最底层背景 (total_bg) */}
+            <img
+              src={DECORATION_ASSETS.background[isAlive ? (layerOverrides.background || decorationConfig.background) : 'default']}
+              alt="Background"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
+            />
+            {/* Layer 5: 全息显示屏 (Holographic display) - with breathing cyan glow */}
+            <img
+              src={DECORATION_ASSETS.holographic[isAlive ? (layerOverrides.holographic || decorationConfig.holographic) : 'default']}
+              alt="Holographic Display"
+              className="absolute inset-0 w-full h-full object-cover animate-holographic-glow"
+              style={{
+                filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)',
+              }}
+            />
+            {/* Layer 4: 照片 (photo) */}
+            <img
+              src={DECORATION_ASSETS.photo[isAlive ? (layerOverrides.photo || decorationConfig.photo) : 'default']}
+              alt="Photo"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
+            />
+            {/* Layer 3: 玩家 (player) */}
+            <img
+              src={DECORATION_ASSETS.player[isAlive ? (layerOverrides.player || decorationConfig.player) : 'deadman']}
+              alt="Player"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+              style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
+            />
+            {/* Layer 2: 床 (bed) */}
+            <img
+              src={DECORATION_ASSETS.bed[isAlive ? (layerOverrides.bed || decorationConfig.bed) : 'default']}
+              alt="Bed"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+              style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
+            />
+            {/* Layer 1: 最顶层炉子 (stove) */}
+            <img
+              src={DECORATION_ASSETS.stove[isAlive ? (layerOverrides.stove || decorationConfig.stove) : 'default']}
+              alt="Stove"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+              style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
+            />
+
+            {/* Interaction Click Zones (z-20) */}
+            <div className="absolute inset-0 z-20">
+              {/* Bed Click Zone: Left 50%, Bottom 66% */}
+              <div
+                className="absolute left-0 bottom-0 w-1/2 h-2/3 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log('[Home] Bed zone clicked!');
+                  handleLayerClick('bed');
+                }}
+              />
+
+              {/* Player Click Zone: Roughly center bottom area (visual estimate) */}
+              {/* Positioned to overlap parts of the bed zone if needed, or distinct */}
+              <div
+                className="absolute left-[35%] bottom-[10%] w-[30%] h-[60%] cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log('[Home] Player zone clicked!');
+                  handleLayerClick('player');
+                }}
+              />
+            </div>
+          </div>
 
           {/* Floating Text Overlay */}
           <AnimatePresence>
@@ -476,13 +506,25 @@ export default function Home() {
           {/* 底部渐变遮罩 - 从透明到纯黑，延伸到屏幕最底部 */}
           <div className="absolute bottom-0 left-0 right-0 h-[350px] bg-gradient-to-t from-black/90 via-black/60 to-transparent pointer-events-none z-10" />
 
-          {/* 未连接状态覆盖层 */}
-          {!isConnected && <UnconnectedScreen language={language} />}
+          {/* Unconnected Overlay */}
+          {!hasAccess && (
+            <div className="absolute inset-0 z-40">
+              <UnconnectedScreen language={language} />
+              {isLoggingIn && (
+                <div className="absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center">
+                  <div className="w-16 h-16 border-4 border-[#00ff41]/30 border-t-[#00ff41] rounded-full animate-spin mb-4" />
+                  <p className="text-[#00ff41] font-mono text-xl animate-pulse">
+                    {language === 'en' ? 'Authenticating...' : '正在验证身份...'}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* 顶部UI容器 - 应用缩放 - 只在已连接时显示 */}
-          {isConnected && (
+          {hasAccess && (
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[505px] z-20">
-              <div 
+              <div
                 className="relative w-full origin-top transition-transform duration-300"
                 style={{
                   transform: `scale(${topScale})`,
@@ -491,19 +533,19 @@ export default function Home() {
                 {/* Health血条 - 只在存活时显示? 或者一直显示0? */}
                 {/* User usually wants feedback on HP recovery. Let's keep HP bar but maybe styled differently if dead? */}
                 {/* Wallet Address Display - Above Health Bar - Lowered to be closer */}
-                <div className="absolute left-[34px] top-[24px] z-20">
+                <div className="absolute left-[34px] top-[24px] z-20 h-4 flex items-center">
                   <div className="flex items-center gap-2">
                     <span className="text-[#00ff41] font-mono text-xs font-bold drop-shadow-[0_0_4px_rgba(0,255,65,0.8)]">
-                      {walletAddress}
+                      {walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : ''}
                     </span>
                   </div>
                 </div>
 
                 {/* Twitter Link - Right aligned */}
-                <div className="absolute right-[34px] top-[24px] z-20">
-                  <a 
-                    href="https://twitter.com/huozheneofficial" 
-                    target="_blank" 
+                <div className="absolute right-[34px] top-[24px] z-20 h-4 flex items-center">
+                  <a
+                    href="https://twitter.com/huozheneofficial"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#00ff41] font-mono text-xs font-bold drop-shadow-[0_0_4px_rgba(0,255,65,0.8)] hover:underline"
                   >
@@ -543,7 +585,7 @@ export default function Home() {
                   {/* Health切图覆盖在最上层 */}
                   <img src={imgHealth} alt="Health" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
                 </div>
-                  
+
                 {/* 状态指标 - Health bar下方 - Moved down due to larger health bar */}
                 <div className="absolute left-[12px] top-[180px] w-[240px]">
                   <StatsIndicators
@@ -567,7 +609,7 @@ export default function Home() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                         <HelpCircle className="w-4 h-4 text-[#00ff41]/70 group-hover:text-[#00ff41]" />
+                        <HelpCircle className="w-4 h-4 text-[#00ff41]/70 group-hover:text-[#00ff41]" />
                       </motion.button>
 
                       {/* 语言切换按钮 */}
@@ -599,12 +641,11 @@ export default function Home() {
                           <VolumeX className="w-4 h-4 text-[#00ff41]/70 group-hover:text-[#00ff41]" />
                         )}
                       </motion.button>
-                      
+
                       {/* 断开连接按钮 */}
                       <motion.button
                         onClick={() => {
-                          setIsConnected(false);
-                          toast.info(language === 'en' ? 'Wallet Disconnected' : '已断开钱包连接');
+                          logout();
                         }}
                         className="w-8 h-8 rounded-lg bg-black/40 hover:bg-red-500/20 flex items-center justify-center backdrop-blur-sm group transition-colors"
                         whileHover={{ scale: 1.05 }}
@@ -615,30 +656,30 @@ export default function Home() {
                     </div>
 
                     <div className="flex flex-col items-end gap-2">
-                       <AliveTokenDisplay 
-                         aliveBalance={aliveBalance} 
-                         onClick={() => {
-                           playSound(soundToken);
-                           setIsClaimModalOpen(true);
-                         }}
-                         className="w-[104px] h-[104px]"
-                       />
-                       
-                       {/* Share on X Button */}
-                       <motion.button
-                         onClick={() => {
-                            const rate = new Intl.NumberFormat('en-US').format(24 * 10 * dopamineIndex);
-                            const text = language === 'en'
-                              ? `My current mining rate is ${rate} $活着呢/day in Alive Game! Can you survive longer than me? @huozheneofficial #AliveGame #Web3`
-                              : `我在 Alive Game 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@huozheneofficial #AliveGame #Web3`;
-                            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
-                         }}
-                         className="w-[104px] h-auto rounded-sm overflow-hidden shadow-lg border border-black"
-                         whileHover={{ scale: 1.05 }}
-                         whileTap={{ scale: 0.95 }}
-                       >
-                         <img src={imgShareX} alt="Share on X" className="w-full h-full object-contain" />
-                       </motion.button>
+                      <AliveTokenDisplay
+                        aliveBalance={aliveBalance}
+                        onClick={() => {
+                          playSound(soundToken);
+                          setIsClaimModalOpen(true);
+                        }}
+                        className="w-[104px] h-[104px]"
+                      />
+
+                      {/* Share on X Button */}
+                      <motion.button
+                        onClick={() => {
+                          const rate = new Intl.NumberFormat('en-US').format(24 * 10 * dopamineIndex);
+                          const text = language === 'en'
+                            ? `My current mining rate is ${rate} $活着呢/day in Alive Game! Can you survive longer than me? @huozheneofficial #AliveGame #Web3`
+                            : `我在 Alive Game 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@huozheneofficial #AliveGame #Web3`;
+                          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+                        }}
+                        className="w-[104px] h-auto rounded-sm overflow-hidden shadow-lg border border-black"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <img src={imgShareX} alt="Share on X" className="w-full h-full object-contain" />
+                      </motion.button>
                     </div>
                   </div>
                 )}
@@ -647,7 +688,7 @@ export default function Home() {
           )}
 
           {/* 心跳监视器和按钮区域 - 底部 */}
-          <div 
+          <div
             className="absolute bottom-[37px] left-0 right-0 flex items-center justify-center gap-4 px-4 origin-bottom transition-transform duration-300 z-20"
             style={{
               transform: `scale(${bottomScale})`,
@@ -655,28 +696,28 @@ export default function Home() {
           >
             {/* Mining Rate Display - Absolute Top of this container */}
             <div className="absolute -top-[50px] left-0 right-0 flex flex-col items-center gap-1 z-30">
-               <div className="flex items-center justify-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-[#00ff41]/20 shadow-[0_0_10px_rgba(0,255,65,0.1)]">
-                 <p className="text-[#00ff41]/90 font-mono text-[11px] md:text-xs text-center whitespace-nowrap">
-                   {language === 'en' ? 'Current mining rate' : '当前挖矿速率'}
-                   <span className="text-[#00ff41] font-bold ml-1.5">
-                     +{new Intl.NumberFormat('en-US').format(24 * 10 * dopamineIndex)} {language === 'en' ? '$活着呢/day' : '$活着呢/天'}
-                   </span>
-                 </p>
-                 <div className="w-[1px] h-3 bg-[#00ff41]/30 mx-1"></div>
-                 <button 
-                   onClick={(e) => {
-                     e.stopPropagation();
-                     const rate = new Intl.NumberFormat('en-US').format(24 * 10 * dopamineIndex);
-                     const text = language === 'en'
-                       ? `My current mining rate is ${rate} $活着呢/day in Alive Game! Can you survive longer than me? @huozheneofficial #AliveGame #Web3`
-                       : `我在 Alive Game 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@huozheneofficial #AliveGame #Web3`;
-                     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
-                   }}
-                   className="text-[#00ff41] hover:text-white underline font-mono text-[11px] md:text-xs transition-colors flex items-center gap-1"
-                 >
-                   {language === 'en' ? 'Tell your friends!' : '告诉你的朋友！'}
-                 </button>
-               </div>
+              <div className="flex items-center justify-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-[#00ff41]/20 shadow-[0_0_10px_rgba(0,255,65,0.1)]">
+                <p className="text-[#00ff41]/90 font-mono text-[11px] md:text-xs text-center whitespace-nowrap">
+                  {language === 'en' ? 'Current mining rate' : '当前挖矿速率'}
+                  <span className="text-[#00ff41] font-bold ml-1.5">
+                    +{new Intl.NumberFormat('en-US').format(24 * 10 * dopamineIndex)} {language === 'en' ? '$活着呢/day' : '$活着呢/天'}
+                  </span>
+                </p>
+                <div className="w-[1px] h-3 bg-[#00ff41]/30 mx-1"></div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const rate = new Intl.NumberFormat('en-US').format(24 * 10 * dopamineIndex);
+                    const text = language === 'en'
+                      ? `My current mining rate is ${rate} $活着呢/day in Alive Game! Can you survive longer than me? @huozheneofficial #AliveGame #Web3`
+                      : `我在 Alive Game 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@huozheneofficial #AliveGame #Web3`;
+                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+                  }}
+                  className="text-[#00ff41] hover:text-white underline font-mono text-[11px] md:text-xs transition-colors flex items-center gap-1"
+                >
+                  {language === 'en' ? 'Tell your friends!' : '告诉你的朋友！'}
+                </button>
+              </div>
             </div>
 
             {/* Store按钮 - 左侧 */}
@@ -741,7 +782,7 @@ export default function Home() {
                   }}
                 />
               </motion.button>
-              
+
               {!isConnected && (
                 <div className="absolute inset-0 flex items-center justify-center z-30">
                   <Lock className="w-8 h-8 text-[#00ff41] drop-shadow-[0_0_8px_rgba(0,255,65,0.8)]" />
@@ -781,14 +822,14 @@ export default function Home() {
             <motion.div
               className="absolute inset-0 z-40 pointer-events-none"
               initial={{ opacity: 0 }}
-              animate={{ 
+              animate={{
                 opacity: [0, 0.4, 0],
                 backgroundColor: ['rgba(0,255,65,0)', 'rgba(0,255,65,0.3)', 'rgba(0,255,65,0)']
               }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5 }}
             />
-            
+
             {/* 心跳线动画 - 画线效果 */}
             <motion.div
               className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[120px] z-50 pointer-events-none"
@@ -797,9 +838,9 @@ export default function Home() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <svg 
-                className="w-full h-full" 
-                viewBox="0 0 1000 100" 
+              <svg
+                className="w-full h-full"
+                viewBox="0 0 1000 100"
                 preserveAspectRatio="xMidYMid meet"
               >
                 {/* 发光效果层 */}
@@ -850,7 +891,7 @@ export default function Home() {
 
       {/* 领取奖励模态框 */}
       <ClaimModal isOpen={isClaimModalOpen} onClose={() => setIsClaimModalOpen(false)} />
-      
+
       {/* 信息模态框 */}
       <InfoModal isOpen={isInfoModalOpen} onClose={() => setIsInfoModalOpen(false)} />
 
