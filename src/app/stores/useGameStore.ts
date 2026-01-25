@@ -1,5 +1,9 @@
 import { create } from 'zustand';
 import { api } from '@/services/api';
+import { type WalletClient } from 'viem';
+import { writeContract, waitForTransactionReceipt } from '@wagmi/core';
+import { config } from '@/config/wagmi';
+import AliveClaimABI from '@/abis/AliveClaim.json';
 
 interface UserStatusResponse {
   address: string;
@@ -52,9 +56,9 @@ interface GameState {
 
   fetchUserStatus: (address: string) => Promise<void>;
   tick: () => void;
-  checkIn: () => void;
+  checkIn: () => Promise<void>; // Needs to be async
   updateHpFromTime: () => void;
-  claimAlive: () => void;
+  claimRewards: (walletClient: WalletClient) => Promise<string>; // Changed signature
   buyItem: (itemId: string, price: number) => void;
   fetchLeaderboard: () => Promise<LeaderboardEntry[]>;
   fetchGlobalStats: () => Promise<void>;
@@ -139,9 +143,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       const globalEmissionInTokens = globalEmission / 1e18;
 
       // User Weight is effectively proportional to totalWeight.
-      // Both are scaled by 1e6.
-      // User Weight Raw = userData.multiplier * 1,000,000 (roughly, since multiplier = weight/scale)
-      const userWeightRaw = userData.multiplier * 1000000;
+      // Both are scaled by 10,000 (WEIGHT_SCALE from backend).
+      // User Weight Raw = userData.multiplier * 10,000.
+      const userWeightRaw = userData.multiplier * 10000;
 
       let emissionRate = 0;
       if (totalWeight > 0) {
@@ -184,16 +188,34 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
   },
 
-  checkIn: () => {
-    // Optimistic update - assume check-in restores 1 HP and increments streaks
-    const state = get();
-    if (state.hp < state.maxHp) {
-      set({ hp: state.hp + 1 });
+  checkIn: async () => {
+    try {
+      // Call backend
+      const response = await api.post<{ data: UserStatusResponse }>('/checkins', {});
+      const userData = response.data.data;
+      const { fetchUserStatus } = get();
+
+      // Update local state with response
+      const displaySurvivalMultiplier = 1.0 + (userData.consecutiveCheckinDays * 0.1);
+      const displayDopamineIndex = 1.0 + (userData.unclaimedDays * 0.1);
+
+      set({
+        hp: userData.hp,
+        maxHp: userData.maxHp,
+        isAlive: userData.status === 'ALIVE',
+        streaks: userData.consecutiveCheckinDays,
+        survivalMultiplier: displaySurvivalMultiplier,
+        dopamineIndex: displayDopamineIndex,
+        lastCheckInTime: Date.now() / 1000,
+      });
+
+      // Refetch full status to align everything
+      await fetchUserStatus(userData.address);
+
+    } catch (error) {
+      console.error('Check-in failed:', error);
+      throw error; // Re-throw for component to handle (e.g. toast)
     }
-    set({ streaks: state.streaks + 1 });
-    // Note: checkIn (backend) will fundamentally change the accumulated rewards multiplier
-    // but might trigger a 'claim' logic or not?
-    // Usually checkIn is just checkIn.
   },
 
   updateHpFromTime: () => {
@@ -201,13 +223,64 @@ export const useGameStore = create<GameState>((set, get) => ({
     // Can leave empty if we rely on frequent fetching or keep simple decay logic for smooth UI
   },
 
-  claimAlive: () => {
-    // Optimistic Reset
-    set({
-      claimable: 0,
-      dopamineIndex: 1.0,
-    });
-    // The actual call to backend /claim should happen in component, then likely refetch user status.
+  claimRewards: async (walletClient: WalletClient) => {
+    try {
+      // 1. Get Signature from Backend
+      const claimResponse = await api.post<{
+        data: {
+          claim: {
+            account: string;
+            amount: string;
+            nonce: string;
+            deadline: string;
+          };
+          signature: string;
+        }
+      }>('/claims', {});
+
+      const { claim, signature } = claimResponse.data.data;
+
+      // 2. Execute Contract Write
+      // CAUTION: Hardcoded contract address for now, needs env var
+      const CONTRACT_ADDRESS = import.meta.env.VITE_ALIVE_CLAIM_CONTRACT as `0x${string}`;
+
+      // Using wagmi core action to bypass hook limitations in store
+      const hash = await writeContract(config, {
+        address: CONTRACT_ADDRESS,
+        abi: AliveClaimABI,
+        functionName: 'claim',
+        args: [
+          [
+            claim.account,
+            BigInt(claim.amount),
+            BigInt(claim.nonce),
+            BigInt(claim.deadline)
+          ],
+          signature as `0x${string}`
+        ],
+      });
+
+      console.log('Transaction sent:', hash);
+
+      // 3. Wait for Receipt
+      const receipt = await waitForTransactionReceipt(config, { hash });
+
+      // 4. Update UI (optimistic or refetch)
+      set({
+        claimable: 0,
+        dopamineIndex: 1.0,
+      });
+
+      // Refetch user status after delay to allow indexer/backend to catch up?
+      // Or relies on user refreshing. 
+      const { fetchUserStatus } = get();
+      setTimeout(() => fetchUserStatus(claim.account), 2000);
+
+      return hash;
+    } catch (error) {
+      console.error('Claim failed:', error);
+      throw error;
+    }
   },
 
   buyItem: (itemId: string, price: number) => {

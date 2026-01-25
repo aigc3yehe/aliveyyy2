@@ -272,7 +272,7 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [isConnected, isAlive, playSound, setLayerOverride, clearLayerOverride]);
 
-  const handleCheckIn = () => {
+  const handleCheckIn = async () => {
     // Play random heart sound
     const heartSounds = [soundHeart01, soundHeart02, soundHeart03];
     const randomSound = heartSounds[Math.floor(Math.random() * heartSounds.length)];
@@ -292,17 +292,23 @@ export default function Home() {
       setCurrentHeartImg(imgHeartBtn);
     }, 300);
 
-    // Always allow check-ins, even if fully healed (for streaks/tokens) or dead (for revival)
-    checkIn();
+    try {
+      await checkIn();
 
-    if (hp < maxHp) {
-      toast.success(language === 'en' ? 'Check-in successful! HP +1' : '签到/复活成功！HP +1', {
-        description: `${language === 'en' ? 'Current HP' : '当前HP'}: ${Math.min(maxHp, hp + 1)}/${maxHp}`,
+      const isHealing = hp < maxHp;
+      const successTitle = language === 'en' ? 'Check-in successful!' : '签到成功！';
+      const healingMsg = language === 'en' ? 'HP +1' : 'HP +1';
+      const maxHpMsg = language === 'en' ? 'HP Full! Tokens Earned' : 'HP已满！获得Token奖励';
+
+      toast.success(isHealing ? `${successTitle} ${healingMsg}` : maxHpMsg, {
+        description: `${language === 'en' ? 'Current HP' : '当前HP'}: ${isHealing ? Math.min(maxHp, hp + 1) : hp}/${maxHp}`,
       });
-    } else {
-      // HP已满，只显示提示
-      toast.success(language === 'en' ? 'HP Full! Tokens Earned' : 'HP已满！获得Token奖励', {
-        description: `${language === 'en' ? 'Current HP' : '当前HP'}: ${hp}/${maxHp}`,
+
+      // Refresh global stats too if checkin affects summary (unlikely but good practice)
+      // fetchGlobalStats(); 
+    } catch (error) {
+      toast.error(language === 'en' ? 'Check-in failed' : '签到失败', {
+        description: language === 'en' ? 'Please try again later' : '请稍后重试'
       });
     }
   };

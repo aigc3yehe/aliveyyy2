@@ -5,7 +5,7 @@ import { http } from 'wagmi';
 
 export const config = getDefaultConfig({
     appName: 'Alive Game',
-    projectId: 'YOUR_PROJECT_ID', // TODO: Replace with actual WalletConnect Project ID
+    projectId: import.meta.env.VITE_PROJECT_ID || 'YOUR_PROJECT_ID',
     chains: [bsc, bscTestnet],
     transports: {
         [bsc.id]: http(),

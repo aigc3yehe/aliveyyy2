@@ -4,6 +4,7 @@ import { useGameStore } from '@/app/stores/useGameStore';
 import { toast } from 'sonner';
 import { formatTokenCount } from '@/utils/format';
 import { useState } from 'react';
+import { useWalletClient } from 'wagmi';
 
 interface ClaimModalProps {
   isOpen: boolean;
@@ -11,21 +12,40 @@ interface ClaimModalProps {
 }
 
 export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
-  const { claimable, dopamineIndex, claimAlive, language } = useGameStore();
-  const [claimState, setClaimState] = useState<'initial' | 'success'>('initial');
+  const { claimable, dopamineIndex, claimRewards, language } = useGameStore();
+  const [claimState, setClaimState] = useState<'initial' | 'loading' | 'success'>('initial');
   const [claimedAmount, setClaimedAmount] = useState(0);
+  const { data: walletClient } = useWalletClient();
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleClaim = () => {
+  const handleClaim = async () => {
+    if (!walletClient) {
+      toast.error('Wallet not connected', { description: 'Please connect your wallet first.' });
+      return;
+    }
+
     if (claimable > 0) {
+      setClaimState('loading');
+      setErrorMsg('');
       const amount = claimable;
-      setClaimedAmount(amount);
-      claimAlive();
-      // Don't close immediately, switch to success state
-      setClaimState('success');
-      // Still show toast for feedback
-      toast.success(language === 'en' ? 'Claim Successful!' : '领取成功！', {
-        description: `${language === 'en' ? 'Received' : '获得'} ${formatTokenCount(amount)} $活着呢`,
-      });
+
+      try {
+        await claimRewards(walletClient);
+        setClaimedAmount(amount);
+        setClaimState('success');
+        toast.success(language === 'en' ? 'Claim Successful!' : '领取成功！', {
+          description: `${language === 'en' ? 'Received' : '获得'} ${formatTokenCount(amount)} $活着呢`,
+        });
+      } catch (error: any) {
+        console.error('Claim failed in modal:', error);
+        setClaimState('initial');
+        // Nicer error message if user rejected
+        const msg = error.details || error.message || 'Unknown error';
+        setErrorMsg(msg.includes('User rejected') ? 'Transaction rejected' : 'Claim failed. See console.');
+        toast.error(language === 'en' ? 'Claim Failed' : '领取失败', {
+          description: msg.slice(0, 100)
+        });
+      }
     }
   };
 
@@ -56,7 +76,7 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
             onClick={handleClose}
           />
 
-          {claimState === 'initial' ? (
+          {claimState === 'initial' || claimState === 'loading' ? (
             /* 初始领取弹窗 - 末世科技复古风格 */
             <motion.div
               key="initial-modal"
@@ -140,13 +160,23 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
                 {/* 领取按钮 */}
                 <motion.button
                   onClick={handleClaim}
-                  disabled={claimable <= 0}
-                  className="w-full bg-black border-2 border-[#00ff41] text-[#00ff41] py-4 font-mono text-lg font-bold hover:bg-[#00ff41] hover:text-black transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black disabled:hover:text-[#00ff41]"
+                  disabled={claimable <= 0 || claimState === 'loading'}
+                  className="w-full bg-black border-2 border-[#00ff41] text-[#00ff41] py-4 font-mono text-lg font-bold hover:bg-[#00ff41] hover:text-black transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black disabled:hover:text-[#00ff41] relative"
                   whileHover={claimable > 0 ? { scale: 1.02 } : {}}
-                  whileTap={claimable > 0 ? { scale: 0.98 } : {}}
+                  whileTap={claimable > 0 && claimState !== 'loading' ? { scale: 0.98 } : {}}
                 >
-                  [ CLAIM_NOW ]
+                  {claimState === 'loading' ? (
+                    <span className="animate-pulse">{language === 'en' ? 'CLAIMING...' : '领取中...'}</span>
+                  ) : (
+                    '[ CLAIM_NOW ]'
+                  )}
                 </motion.button>
+
+                {errorMsg && (
+                  <div className="text-red-500 font-mono text-xs text-center mt-2 break-all px-2">
+                    {errorMsg}
+                  </div>
+                )}
 
                 {/* 底部提示 */}
                 <div className="border-t border-[#00ff41]/20 pt-4">
