@@ -2,16 +2,24 @@ import { useEffect } from 'react';
 import { useGameStore } from '@/app/stores/useGameStore';
 
 export function useGameLoop() {
-  const { updateHpFromTime, aliveBalance, setAliveBalance, hp, isAlive } = useGameStore();
+  const { updateHpFromTime, aliveBalance, setAliveBalance, hp, isAlive, tick } = useGameStore();
 
-  // HP 倒计时循环
   useEffect(() => {
-    const interval = setInterval(() => {
+    // 1秒更新一次 HP (降低频率，因为HP是一小时变化一次)
+    const hpInterval = setInterval(() => {
       updateHpFromTime();
-    }, 1000); // 每秒更新一次
+    }, 1000);
 
-    return () => clearInterval(interval);
-  }, [updateHpFromTime]);
+    // 0.1秒更新一次 Token (用于动画)
+    const tickInterval = setInterval(() => {
+      tick();
+    }, 100);
+
+    return () => {
+      clearInterval(hpInterval);
+      clearInterval(tickInterval);
+    };
+  }, [updateHpFromTime, tick]);
 
   // 代币产出动画 - 只有在存活时才产出
   useEffect(() => {

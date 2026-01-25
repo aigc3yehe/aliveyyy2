@@ -11,13 +11,13 @@ interface ClaimModalProps {
 }
 
 export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
-  const { pendingAlive, dopamineIndex, claimAlive, language } = useGameStore();
+  const { claimable, dopamineIndex, claimAlive, language } = useGameStore();
   const [claimState, setClaimState] = useState<'initial' | 'success'>('initial');
   const [claimedAmount, setClaimedAmount] = useState(0);
 
   const handleClaim = () => {
-    if (pendingAlive > 0) {
-      const amount = pendingAlive;
+    if (claimable > 0) {
+      const amount = claimable;
       setClaimedAmount(amount);
       claimAlive();
       // Don't close immediately, switch to success state
@@ -30,10 +30,10 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
   };
 
   const handleShare = () => {
-    const text = language === 'en' 
+    const text = language === 'en'
       ? `I just claimed ${formatTokenCount(claimedAmount)} $活着呢 in the Alive Game! Come and survive with me! @huozheneofficial #AliveGame #Web3`
       : `我在 Alive Game 中领取了 ${formatTokenCount(claimedAmount)} $活着呢！快来和我一起存活吧！@huozheneofficial #AliveGame #Web3`;
-    
+
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   };
@@ -90,12 +90,11 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
                   </div>
                   <motion.div
                     className="text-[#00ff41] font-mono text-4xl font-bold text-center"
-                    key={pendingAlive}
                     initial={{ scale: 1.2, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    {formatTokenCount(pendingAlive)}
+                    {formatTokenCount(claimable)}
                   </motion.div>
                   <div className="text-gray-500 font-mono text-sm text-center mt-2">
                     $活着呢
@@ -141,10 +140,10 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
                 {/* 领取按钮 */}
                 <motion.button
                   onClick={handleClaim}
-                  disabled={pendingAlive <= 0}
+                  disabled={claimable <= 0}
                   className="w-full bg-black border-2 border-[#00ff41] text-[#00ff41] py-4 font-mono text-lg font-bold hover:bg-[#00ff41] hover:text-black transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black disabled:hover:text-[#00ff41]"
-                  whileHover={pendingAlive > 0 ? { scale: 1.02 } : {}}
-                  whileTap={pendingAlive > 0 ? { scale: 0.98 } : {}}
+                  whileHover={claimable > 0 ? { scale: 1.02 } : {}}
+                  whileTap={claimable > 0 ? { scale: 0.98 } : {}}
                 >
                   [ CLAIM_NOW ]
                 </motion.button>
@@ -191,17 +190,17 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
 
               <div className="relative p-8 flex flex-col items-center">
                 {/* 成功图标 */}
-                <motion.div 
+                <motion.div
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", bounce: 0.6, delay: 0.2 }}
                   className="w-20 h-20 bg-gradient-to-br from-[#00ff41] to-[#008f11] rounded-full flex items-center justify-center mb-6 border-4 border-[#00ff41] shadow-[0_0_20px_rgba(0,255,65,0.4)]"
                 >
-                   <span className="text-4xl filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">❤️</span>
+                  <span className="text-4xl filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">❤️</span>
                 </motion.div>
 
                 {/* 标题 */}
-                <motion.h2 
+                <motion.h2
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
@@ -228,7 +227,7 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
                     $活着呢
                   </p>
                 </motion.div>
-                
+
                 {/* 分享按钮 (Share on X) */}
                 <motion.button
                   initial={{ opacity: 0, y: 20 }}

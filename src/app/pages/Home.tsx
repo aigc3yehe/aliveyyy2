@@ -97,10 +97,19 @@ export default function Home() {
   // Use Authenticated state for game access instead of just wallet connection
   const hasAccess = isConnected && isAuthenticated;
 
-  const { hp, maxHp, aliveBalance, isAlive, streaks, survivalMultiplier, dopamineIndex, audioState, language, checkIn, cycleAudioState, setLanguage } = useGameStore();
+  const { hp, maxHp, aliveBalance, isAlive, streaks, survivalMultiplier, dopamineIndex, audioState, language, checkIn, cycleAudioState, setLanguage, fetchUserStatus, claimable, userEmissionRate } = useGameStore();
   const { config: decorationConfig, isLoading: isDecorationLoading, fetchDecorations, layerOverrides, handleLayerClick, setLayerOverride, clearLayerOverride } = useDecorationStore();
   const [bottomScale, setBottomScale] = useState(1);
   const [topScale, setTopScale] = useState(1);
+
+  // Calculate daily rate from emission rate (tokens/sec * 86400)
+  const dailyRate = userEmissionRate * 86400;
+
+  // ... (rest of component state)
+
+  // Skip down to rendering part...
+
+  // Placeholder for component state spacing
   const [currentHeartImg, setCurrentHeartImg] = useState(imgHeartBtn);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -116,6 +125,18 @@ export default function Home() {
   useEffect(() => {
     fetchDecorations();
   }, [fetchDecorations]);
+
+  // Fetch User Status on Authenticated
+  useEffect(() => {
+    if (hasAccess && walletAddress) {
+      fetchUserStatus(walletAddress);
+      // Optional: Poll every minute or so if real-time updates are needed without user interaction
+      const interval = setInterval(() => {
+        fetchUserStatus(walletAddress);
+      }, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [hasAccess, walletAddress, fetchUserStatus]);
 
   /* Login Logic with Retry Limit */
   const [retryCount, setRetryCount] = useState(0);
@@ -657,7 +678,7 @@ export default function Home() {
 
                     <div className="flex flex-col items-end gap-2">
                       <AliveTokenDisplay
-                        aliveBalance={aliveBalance}
+                        aliveBalance={claimable}
                         onClick={() => {
                           playSound(soundToken);
                           setIsClaimModalOpen(true);
@@ -700,14 +721,14 @@ export default function Home() {
                 <p className="text-[#00ff41]/90 font-mono text-[11px] md:text-xs text-center whitespace-nowrap">
                   {language === 'en' ? 'Current mining rate' : '当前挖矿速率'}
                   <span className="text-[#00ff41] font-bold ml-1.5">
-                    +{new Intl.NumberFormat('en-US').format(24 * 10 * dopamineIndex)} {language === 'en' ? '$活着呢/day' : '$活着呢/天'}
+                    +{new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(dailyRate)} {language === 'en' ? '$活着呢/day' : '$活着呢/天'}
                   </span>
                 </p>
                 <div className="w-[1px] h-3 bg-[#00ff41]/30 mx-1"></div>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    const rate = new Intl.NumberFormat('en-US').format(24 * 10 * dopamineIndex);
+                    const rate = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(dailyRate);
                     const text = language === 'en'
                       ? `My current mining rate is ${rate} $活着呢/day in Alive Game! Can you survive longer than me? @huozheneofficial #AliveGame #Web3`
                       : `我在 Alive Game 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@huozheneofficial #AliveGame #Web3`;

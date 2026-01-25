@@ -39,7 +39,7 @@ export function AliveTokenDisplay({ aliveBalance, onClick, className }: AliveTok
         alt="$活着吧 Token Box"
         className="absolute inset-0 w-full h-full object-contain pointer-events-none"
       />
-      
+
       {/* 代币数值显示 - 在宝箱顶部中央 */}
       <div className="absolute left-1/2 top-[25%] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
         <motion.p

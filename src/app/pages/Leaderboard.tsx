@@ -1,23 +1,45 @@
 import { motion } from 'motion/react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { ArrowLeft, TrendingUp } from 'lucide-react';
 import { useGameStore } from '@/app/stores/useGameStore';
 import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95cdb7a89980e1a1c18de7.webp';
 import { formatTokenCount } from '@/utils/format';
 
-const mockLeaderboard = [
-  { rank: 1, address: '0x1234...5678', hp: 48, streaks: 120, alive: 1500.5, avatar: '🏆' },
-  { rank: 2, address: '0xabcd...ef01', hp: 47, streaks: 115, alive: 1350.2, avatar: '🥈' },
-  { rank: 3, address: '0x9876...5432', hp: 46, streaks: 110, alive: 1200.8, avatar: '🥉' },
-  { rank: 4, address: '0xfedc...ba98', hp: 45, streaks: 105, alive: 1050.4, avatar: '👤' },
-  { rank: 5, address: '0x5555...6666', hp: 44, streaks: 100, alive: 900.0, avatar: '👤' },
-  { rank: 6, address: '0x7777...8888', hp: 43, streaks: 95, alive: 850.0, avatar: '👤' },
-  { rank: 7, address: '0x9999...0000', hp: 42, streaks: 90, alive: 800.0, avatar: '👤' },
-  { rank: 8, address: '0x1111...2222', hp: 41, streaks: 85, alive: 750.0, avatar: '👤' },
-];
+interface LeaderboardDisplayItem {
+  rank: number;
+  address: string;
+  hp: number;
+  streaks: number;
+  alive: number;
+  avatar: string;
+}
 
 export default function Leaderboard() {
-  const { hp, streaks, aliveBalance, language } = useGameStore();
+  const { hp, streaks, aliveBalance, language, fetchLeaderboard } = useGameStore();
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardDisplayItem[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetchLeaderboard();
+        if (data) {
+          const mappedData = data.map((entry, index) => ({
+            rank: index + 1,
+            address: entry.address,
+            hp: entry.hp,
+            streaks: entry.consecutiveCheckinDays,
+            alive: parseFloat(entry.accruedRewards) / 1e18,
+            avatar: index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤'
+          }));
+          setLeaderboardData(mappedData);
+        }
+      } catch (error) {
+        console.error('Failed to load leaderboard', error);
+      }
+    };
+    loadData();
+  }, [fetchLeaderboard]);
 
   // CRT 扫描线效果
   const scanlineEffect = (
@@ -168,7 +190,7 @@ export default function Leaderboard() {
                 </div>
 
                 {/* 排行榜数据 */}
-                {mockLeaderboard.map((player, index) => (
+                {leaderboardData.map((player, index) => (
                   <motion.div
                     key={player.rank}
                     className="grid grid-cols-5 gap-2 p-3 border-b border-[#00ff41]/10 hover:bg-[#00ff41]/5 transition-colors"
@@ -192,9 +214,8 @@ export default function Leaderboard() {
                     {/* HP */}
                     <div className="flex items-center justify-center">
                       <span
-                        className={`font-mono text-xs font-bold ${
-                          player.hp >= 45 ? 'text-[#00ff41]' : 'text-yellow-500'
-                        }`}
+                        className={`font-mono text-xs font-bold ${player.hp >= 45 ? 'text-[#00ff41]' : 'text-yellow-500'
+                          }`}
                       >
                         {player.hp}/48
                       </span>
