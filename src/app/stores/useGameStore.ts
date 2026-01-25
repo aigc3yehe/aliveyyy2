@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { api } from '@/services/api';
-import { type WalletClient } from 'viem';
-import { writeContract, waitForTransactionReceipt } from '@wagmi/core';
+import { type WalletClient, parseEther, erc20Abi, formatEther } from 'viem';
+import { writeContract, waitForTransactionReceipt, readContract } from '@wagmi/core';
 import { config } from '@/config/wagmi';
 import AliveClaimABI from '@/abis/AliveClaim.json';
 
@@ -25,6 +25,19 @@ export interface DashboardSummaryResponse {
   globalEmissionPerSecond: string;
 }
 
+export interface ShopItem {
+  code: string;
+  name: string;
+  description: string;
+  price: string;
+  cover: string;
+  effects: {
+    type: 'HEAL' | 'BUFF' | 'REVIVE';
+    value: number;
+    duration?: number;
+  }[];
+}
+
 interface GameState {
   hp: number;
   maxHp: number;
@@ -41,6 +54,8 @@ interface GameState {
   claimable: number; userEmissionRate: number;
   lastTickTime: number;
   globalStats: DashboardSummaryResponse | null;
+  items: ShopItem[];
+  tokenBalance: string;
 
   setHp: (hp: number) => void;
   setLastCheckInTime: (time: number) => void;
@@ -59,7 +74,9 @@ interface GameState {
   checkIn: () => Promise<void>; // Needs to be async
   updateHpFromTime: () => void;
   claimRewards: (walletClient: WalletClient) => Promise<{ hash: string; amount: number }>; // Changed signature to return amount
-  buyItem: (itemId: string, price: number) => void;
+  buyItem: (item: ShopItem, walletClient: WalletClient) => Promise<void>;
+  fetchItems: () => Promise<void>;
+  fetchTokenBalance: (address: string) => Promise<void>;
   fetchLeaderboard: () => Promise<LeaderboardEntry[]>;
   fetchGlobalStats: () => Promise<void>;
 }
@@ -71,6 +88,7 @@ export interface LeaderboardEntry {
   unclaimedDays: number;
   multiplier: number;
   accruedRewards: string;
+  claimRewards: string;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -90,6 +108,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   userEmissionRate: 0,
   lastTickTime: Date.now(),
   globalStats: null,
+  items: [],
+  tokenBalance: '0',
 
   setHp: (hp) => set({ hp }),
   setLastCheckInTime: (time) => set({ lastCheckInTime: time }),
@@ -283,8 +303,75 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-  buyItem: (itemId: string, price: number) => {
-    // Placeholder
+  buyItem: async (item: ShopItem, walletClient: WalletClient) => {
+    try {
+      // 1. Transfer Tokens to Treasury
+      const tokenAddress = import.meta.env.VITE_ALIVE_TOKEN as `0x${string}`;
+      const treasuryAddress = import.meta.env.VITE_TREASURY_ADDRESS as `0x${string}`;
+
+      if (!tokenAddress || !treasuryAddress) {
+        throw new Error('Token or Treasury address not configured');
+      }
+
+      const priceInWei = parseEther(item.price);
+
+      const hash = await writeContract(config, {
+        address: tokenAddress,
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [treasuryAddress, priceInWei],
+      });
+
+      console.log(`Transfer sent for item ${item.code}:`, hash);
+      await waitForTransactionReceipt(config, { hash });
+
+      // 2. Call Backend Purchase API
+      await api.post('/items/purchase', {
+        code: item.code,
+        quantity: 1, // Currently single item purchase
+        txHash: hash,
+      });
+
+      // 3. Refresh User Status (HP, etc) and Balance
+      const address = walletClient.account?.address;
+      if (address) {
+        const { fetchUserStatus, fetchTokenBalance } = get();
+        await Promise.all([
+          fetchUserStatus(address),
+          fetchTokenBalance(address)
+        ]);
+      }
+    } catch (error) {
+      console.error('Purchase failed:', error);
+      throw error;
+    }
+  },
+
+  fetchItems: async () => {
+    try {
+      const response = await api.get<{ data: ShopItem[] }>('/items');
+      set({ items: response.data.data });
+    } catch (error) {
+      console.error('Failed to fetch items:', error);
+    }
+  },
+
+  fetchTokenBalance: async (address: string) => {
+    try {
+      const tokenAddress = import.meta.env.VITE_ALIVE_TOKEN as `0x${string}`;
+      if (!tokenAddress) return;
+
+      const balance = await readContract(config, {
+        address: tokenAddress,
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [address as `0x${string}`],
+      });
+
+      set({ tokenBalance: formatEther(balance) });
+    } catch (error) {
+      console.error('Failed to fetch token balance:', error);
+    }
   },
 
   fetchLeaderboard: async () => {

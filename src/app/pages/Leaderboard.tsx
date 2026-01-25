@@ -29,7 +29,7 @@ export default function Leaderboard() {
             address: entry.address,
             hp: entry.hp,
             streaks: entry.consecutiveCheckinDays,
-            alive: parseFloat(entry.accruedRewards) / 1e18,
+            alive: parseFloat(entry.claimRewards || entry.accruedRewards) / 1e18,
             avatar: index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤'
           }));
           setLeaderboardData(mappedData);

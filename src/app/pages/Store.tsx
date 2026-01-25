@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
+import { useWalletClient, useAccount } from 'wagmi';
 import { Link } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
-import { useGameStore } from '@/app/stores/useGameStore';
+import { useGameStore, ShopItem } from '@/app/stores/useGameStore';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -15,58 +16,57 @@ import {
 import { Button } from '@/app/components/ui/button';
 import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95cdb7a89980e1a1c18de7.webp';
 
-import imgFkp from '@/assets/fkp.webp';
 import { formatTokenCount } from '@/utils/format';
 
 export default function Store() {
-  const { aliveBalance, buyItem, language } = useGameStore();
-  const [selectedItem, setSelectedItem] = useState<(typeof storeItems)[0] | null>(null);
+  const { aliveBalance, tokenBalance, buyItem, items, fetchItems, fetchTokenBalance, language } = useGameStore();
+  const { data: walletClient } = useWalletClient();
+  const { address } = useAccount();
+  const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
 
-  const storeItems = [
-    {
-      id: 'soul-mate',
-      image: imgFkp,
-      name: language === 'en' ? 'Soul Mate' : '灵魂伴侣',
-      description: language === 'en' ? 'Seems to be a necessity' : '似乎是必需品。',
-      price: 10000,
-      priceType: 'alive',
-    },
-    {
-      id: 'pacemaker',
-      icon: '💓',
-      name: language === 'en' ? 'Pacemaker' : '心脏起搏器',
-      description: language === 'en' ? 'Auto revive once, hold one skill' : '自动复活一次，技能持有一个。',
-      price: 100000,
-      priceType: 'alive',
-    },
-  ];
+  const handleImageError = (code: string) => {
+    setFailedImages(prev => {
+      const newSet = new Set(prev);
+      newSet.add(code);
+      return newSet;
+    });
+  };
 
-  const handlePurchase = () => {
-    if (!selectedItem) return;
-
-    if (selectedItem.priceType === 'eth') {
-      toast.info(language === 'en' ? 'Web3 Feature in Development' : 'Web3功能开发中', {
-        description: language === 'en' ? 'Please use crypto later' : '请稍后使用加密货币购买',
-      });
-      setIsDialogOpen(false);
-      return;
+  useEffect(() => {
+    fetchItems();
+    if (address) {
+      fetchTokenBalance(address);
     }
+  }, [fetchItems, fetchTokenBalance, address]);
 
-    if (typeof selectedItem.price === 'number' && aliveBalance >= selectedItem.price) {
-      buyItem(selectedItem.id, selectedItem.price);
+  const handlePurchase = async () => {
+    if (!selectedItem || !walletClient) return;
+
+    // TODO: Handle ETH/BNB purchases if we add them later
+    // For now assuming all are ALIVE token items
+
+    try {
+      setIsPurchasing(true);
+      await buyItem(selectedItem, walletClient);
+
       toast.success(language === 'en' ? 'Purchase Successful!' : '购买成功！', {
         description: language === 'en' ? `You obtained ${selectedItem.name}` : `你获得了 ${selectedItem.name}`,
       });
-    } else {
-      toast.error(language === 'en' ? 'Insufficient Balance' : '余额不足', {
-        description: language === 'en' ? `Requires ${selectedItem.price} $活着呢` : `需要 ${selectedItem.price} $活着呢`,
+      setIsDialogOpen(false);
+    } catch (error: any) {
+      console.error('Purchase error:', error);
+      toast.error(language === 'en' ? 'Purchase Failed' : '购买失败', {
+        description: error.message || 'Transaction failed'
       });
+    } finally {
+      setIsPurchasing(false);
     }
-    setIsDialogOpen(false);
   };
 
-  const openPurchaseDialog = (item: typeof storeItems[0]) => {
+  const openPurchaseDialog = (item: ShopItem) => {
     setSelectedItem(item);
     setIsDialogOpen(true);
   };
@@ -164,12 +164,12 @@ export default function Store() {
                     </span>
                     <motion.span
                       className="text-[#00ff41] text-xl font-bold"
-                      key={aliveBalance.toFixed(2)}
+                      key={tokenBalance}
                       initial={{ scale: 1.2, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ duration: 0.2 }}
                     >
-                      {formatTokenCount(aliveBalance)} $活着呢
+                      {formatTokenCount(parseFloat(tokenBalance))} $活着呢
                     </motion.span>
                   </div>
                 </motion.div>
@@ -177,9 +177,9 @@ export default function Store() {
 
               {/* 商品列表 - 宫格风格 */}
               <div className="grid grid-cols-2 gap-4">
-                {storeItems.map((item, index) => (
+                {items.map((item, index) => (
                   <motion.div
-                    key={item.id}
+                    key={item.code}
                     className="group relative bg-black border border-[#00ff41]/20 hover:border-[#00ff41] transition-colors duration-300 cursor-pointer overflow-hidden flex flex-col"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -190,22 +190,23 @@ export default function Store() {
                   >
                     {/* 正方形封面区域 */}
                     <div className="relative w-full aspect-square border-b border-[#00ff41]/20 bg-[#00ff41]/5 group-hover:bg-[#00ff41]/10 transition-colors flex items-center justify-center overflow-hidden">
-                       {item.image ? (
-                           <img 
-                             src={item.image} 
-                             alt={item.name} 
-                             className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-300" 
-                           />
-                       ) : (
-                         <span className="text-6xl filter drop-shadow-[0_0_8px_rgba(0,255,65,0.4)]">
-                           {item.icon}
-                         </span>
-                       )}
-                       {/* 装饰性角标 */}
-                       <div className="absolute top-2 left-2 w-2 h-2 border-l border-t border-[#00ff41]/50" />
-                       <div className="absolute top-2 right-2 w-2 h-2 border-r border-t border-[#00ff41]/50" />
-                       <div className="absolute bottom-2 left-2 w-2 h-2 border-l border-b border-[#00ff41]/50" />
-                       <div className="absolute bottom-2 right-2 w-2 h-2 border-r border-b border-[#00ff41]/50" />
+                      {item.cover && !failedImages.has(item.code) ? (
+                        <img
+                          src={item.cover}
+                          alt={item.name}
+                          className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-300"
+                          onError={() => handleImageError(item.code)}
+                        />
+                      ) : (
+                        <span className="text-6xl filter drop-shadow-[0_0_8px_rgba(0,255,65,0.4)]">
+                          📦
+                        </span>
+                      )}
+                      {/* 装饰性角标 */}
+                      <div className="absolute top-2 left-2 w-2 h-2 border-l border-t border-[#00ff41]/50" />
+                      <div className="absolute top-2 right-2 w-2 h-2 border-r border-t border-[#00ff41]/50" />
+                      <div className="absolute bottom-2 left-2 w-2 h-2 border-l border-b border-[#00ff41]/50" />
+                      <div className="absolute bottom-2 right-2 w-2 h-2 border-r border-b border-[#00ff41]/50" />
                     </div>
 
                     {/* 内容详情 */}
@@ -217,10 +218,10 @@ export default function Store() {
                         {item.description}
                       </p>
                       <div className="mt-auto pt-2 border-t border-[#00ff41]/10 flex justify-between items-center">
-                         <span className={`font-mono text-xs font-bold ${item.priceType === 'eth' ? 'text-[#ffa500]' : 'text-[#00ff41]'}`}>
-                           {item.priceType === 'eth' ? item.price : formatTokenCount(Number(item.price))}
-                         </span>
-                         {item.priceType !== 'eth' && <span className="text-[10px] text-gray-500">$活着呢</span>}
+                        <span className={`font-mono text-xs font-bold text-[#00ff41]`}>
+                          {formatTokenCount(Number(item.price))}
+                        </span>
+                        <span className="text-[10px] text-gray-500">$活着呢</span>
                       </div>
                     </div>
                   </motion.div>
@@ -254,58 +255,60 @@ export default function Store() {
         <DialogContent className="border-[#00ff41] bg-black text-[#00ff41] font-mono max-w-[90vw] w-80 sm:w-96 rounded-none border-2">
           <DialogHeader>
             <DialogTitle className="text-xl border-b border-[#00ff41]/30 pb-2">
-                 {language === 'en' ? 'CONFIRM_PURCHASE' : '确认购买'}
+              {language === 'en' ? 'CONFIRM_PURCHASE' : '确认购买'}
             </DialogTitle>
             <DialogDescription className="text-gray-400 pt-2">
-               {language === 'en' ? 'Authorize transaction?' : '是否授权此交易?'}
+              {language === 'en' ? 'Authorize transaction?' : '是否授权此交易?'}
             </DialogDescription>
           </DialogHeader>
 
           {selectedItem && (
             <div className="py-4 space-y-4">
-               <div className="flex gap-4 items-center bg-[#00ff41]/5 p-3 border border-[#00ff41]/30">
-                  <div className="w-16 h-16 flex items-center justify-center bg-black overflow-hidden flex-shrink-0">
-                      {selectedItem.image ? (
-                           <img 
-                             src={selectedItem.image} 
-                             alt={selectedItem.name} 
-                             className="w-full h-full object-cover" 
-                           />
-                       ) : (
-                         <span className="text-4xl">
-                           {selectedItem.icon}
-                         </span>
-                       )}
-                  </div>
-                  <div>
-                    <div className="font-bold">{selectedItem.name}</div>
-                    <div className="text-xs text-gray-400">{selectedItem.description}</div>
-                  </div>
-               </div>
-               
-               <div className="flex justify-between items-end border-b border-dashed border-[#00ff41]/30 pb-1">
-                  <span className="text-sm text-gray-500">COST:</span>
-                  <span className={`text-lg font-bold ${selectedItem.priceType === 'eth' ? 'text-[#ffa500]' : 'text-[#00ff41]'}`}>
-                    {selectedItem.priceType === 'eth' ? selectedItem.price : `${formatTokenCount(Number(selectedItem.price))} $活着呢`}
-                  </span>
-               </div>
+              <div className="flex gap-4 items-center bg-[#00ff41]/5 p-3 border border-[#00ff41]/30">
+                <div className="w-16 h-16 flex items-center justify-center bg-black overflow-hidden flex-shrink-0">
+                  {selectedItem.cover && !failedImages.has(selectedItem.code) ? (
+                    <img
+                      src={selectedItem.cover}
+                      alt={selectedItem.name}
+                      className="w-full h-full object-cover"
+                      onError={() => handleImageError(selectedItem.code)}
+                    />
+                  ) : (
+                    <span className="text-4xl">
+                      📦
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <div className="font-bold">{selectedItem.name}</div>
+                  <div className="text-xs text-gray-400">{selectedItem.description}</div>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-end border-b border-dashed border-[#00ff41]/30 pb-1">
+                <span className="text-sm text-gray-500">COST:</span>
+                <span className={`text-lg font-bold text-[#00ff41]`}>
+                  {`${formatTokenCount(Number(selectedItem.price))} $活着呢`}
+                </span>
+              </div>
             </div>
           )}
 
           <DialogFooter className="flex-col sm:flex-row gap-2 mt-2">
-             <Button
-                variant="outline"
-                className="bg-black border-[#00ff41]/50 text-[#00ff41] hover:bg-[#00ff41]/10 hover:text-[#00ff41] rounded-none w-full sm:w-auto"
-                onClick={() => setIsDialogOpen(false)}
-             >
-                {language === 'en' ? 'CANCEL' : '取消'}
-             </Button>
-             <Button
-                className="bg-[#00ff41] text-black hover:bg-[#00ff41]/80 rounded-none font-bold w-full sm:w-auto"
-                onClick={handlePurchase}
-             >
-                {language === 'en' ? 'CONFIRM' : '确认'}
-             </Button>
+            <Button
+              variant="outline"
+              className="bg-black border-[#00ff41]/50 text-[#00ff41] hover:bg-[#00ff41]/10 hover:text-[#00ff41] rounded-none w-full sm:w-auto"
+              onClick={() => setIsDialogOpen(false)}
+            >
+              {language === 'en' ? 'CANCEL' : '取消'}
+            </Button>
+            <Button
+              className="bg-[#00ff41] text-black hover:bg-[#00ff41]/80 rounded-none font-bold w-full sm:w-auto"
+              onClick={handlePurchase}
+              disabled={isPurchasing}
+            >
+              {isPurchasing ? (language === 'en' ? 'PURCHASING...' : '购买中...') : (language === 'en' ? 'CONFIRM' : '确认')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
