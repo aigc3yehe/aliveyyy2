@@ -5,8 +5,6 @@ import { toast } from 'sonner';
 import { formatTokenCount } from '@/utils/format';
 import { useState } from 'react';
 import { useWalletClient } from 'wagmi';
-import useSWR from 'swr';
-import { api, fetcher } from '@/services/api';
 
 interface ClaimRecordDto {
   id: string;
@@ -17,18 +15,20 @@ interface ClaimRecordDto {
 interface ClaimModalProps {
   isOpen: boolean;
   onClose: () => void;
+  pendingClaim: ClaimRecordDto | undefined;
 }
 
-export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
-  const { claimable, dopamineIndex, claimRewards, language, userNonce } = useGameStore();
+export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
+  const { claimable, dopamineIndex, claimRewards, language } = useGameStore(); // userNonce removed as not used directly here anymore
   const [claimState, setClaimState] = useState<'initial' | 'loading' | 'success'>('initial');
   const [claimedAmount, setClaimedAmount] = useState(0);
-  const { data: pendingClaim } = useSWR<ClaimRecordDto>(
-    isOpen && userNonce !== undefined ? `/claims/${userNonce}` : null,
-    fetcher
-  );
 
+  // pendingClaim passed from parent
   const pendingClaimAmount = pendingClaim?.amount ? parseFloat(pendingClaim.amount) / 1e18 : 0;
+
+  // Total display amount: Current accrued (claimable) + Pending claim (from nonce)
+  const totalDisplayAmount = claimable + pendingClaimAmount;
+
   const { data: walletClient } = useWalletClient();
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -38,10 +38,10 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
       return;
     }
 
-    if (claimable > 0) {
+    if (totalDisplayAmount > 0) { // Check against total amount
       setClaimState('loading');
       setErrorMsg('');
-      const amount = claimable;
+      const amount = totalDisplayAmount;
 
       try {
         const result = await claimRewards(walletClient);
@@ -128,7 +128,7 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    {formatTokenCount(claimable)}
+                    {formatTokenCount(totalDisplayAmount)}
                   </motion.div>
                   <div className="text-gray-500 font-mono text-sm text-center mt-2">
                     $活着呢
@@ -174,22 +174,26 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
                 {/* 领取按钮 */}
                 <motion.button
                   onClick={handleClaim}
-                  disabled={claimable <= 0 || claimState === 'loading'}
+                  disabled={totalDisplayAmount <= 0 || claimState === 'loading'}
                   className="w-full bg-black border-2 border-[#00ff41] text-[#00ff41] py-4 font-mono text-lg font-bold hover:bg-[#00ff41] hover:text-black transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black disabled:hover:text-[#00ff41] relative flex flex-col items-center justify-center"
-                  whileHover={claimable > 0 ? { scale: 1.02 } : {}}
-                  whileTap={claimable > 0 && claimState !== 'loading' ? { scale: 0.98 } : {}}
+                  whileHover={totalDisplayAmount > 0 ? { scale: 1.02 } : {}}
+                  whileTap={totalDisplayAmount > 0 && claimState !== 'loading' ? { scale: 0.98 } : {}}
                 >
                   {claimState === 'loading' ? (
                     <span className="animate-pulse">{language === 'en' ? 'CLAIMING...' : '领取中...'}</span>
                   ) : (
-                    '[ CLAIM_NOW ]'
+                    pendingClaimAmount > 0 ? (
+                      language === 'en' ? 'Continue claiming' : '继续领取'
+                    ) : (
+                      '[ CLAIM_NOW ]'
+                    )
                   )}
 
                   {pendingClaimAmount > 0 && (
                     <div className="font-mono text-[10px] text-gray-500 mt-1">
                       {language === 'en'
-                        ? `// Claim Pending ${formatTokenCount(pendingClaimAmount)} $活着呢`
-                        : `// 领取待定金额 ${formatTokenCount(pendingClaimAmount)} $活着呢`
+                        ? `// Coming ${formatTokenCount(pendingClaimAmount)} $活着呢`
+                        : `// 立即获得 ${formatTokenCount(pendingClaimAmount)} $活着呢`
                       }
                     </div>
                   )}

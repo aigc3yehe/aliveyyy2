@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router';
 import { useEffect, useState, useRef } from 'react';
+import useSWR from 'swr';
+import { fetcher } from '@/services/api';
 import svgPaths from '@/imports/svg-5a80hypqpv';
 import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95cdb7a89980e1a1c18de7.webp';
 import imgBg from '@/assets/dca99f7bd6ea1c0f2b1a15f76d3e0bba21ec1e4d.webp';
@@ -99,7 +101,7 @@ export default function Home() {
   // Use Authenticated state for game access instead of just wallet connection
   const hasAccess = isConnected && isAuthenticated;
 
-  const { hp, maxHp, isAlive, streaks, survivalMultiplier, dopamineIndex, audioState, language, checkIn, reconnect, cycleAudioState, setLanguage, claimable, userEmissionRate, userItems } = useGameStore();
+  const { hp, maxHp, isAlive, streaks, survivalMultiplier, dopamineIndex, audioState, language, checkIn, reconnect, cycleAudioState, setLanguage, claimable, userEmissionRate, userItems, userNonce } = useGameStore();
   const { config: decorationConfig, isLoading: isDecorationLoading, layerOverrides, handleLayerClick, setLayerOverride, clearLayerOverride } = useDecorationStore();
   const [bottomScale, setBottomScale] = useState(1);
   const [topScale, setTopScale] = useState(1);
@@ -128,9 +130,16 @@ export default function Home() {
 
   // Use new SWR hooks for data fetching and syncing
   useUserGameData(walletAddress);
+  useUserGameData(walletAddress);
   useDecorationData();
 
-  // Load decorations on mount - Removed manually calling fetchDecorations as hook handles it
+  // Hoisted claim data fetching
+  const { data: pendingClaim } = useSWR<{ id: string; nonce: string; amount: string }>(
+    isConnected && userNonce !== undefined ? `/claims/${userNonce}` : null,
+    fetcher
+  ); // Note: Need to import api/fetcher or use existing one if available. 
+  // Home.tsx doesn't import 'fetcher' directly from '@/services/api' yet, checking imports...
+
   // useEffect(() => {
   //   fetchDecorations();
   // }, [fetchDecorations]);
@@ -736,7 +745,7 @@ export default function Home() {
 
                     <div className="flex flex-col items-end gap-2">
                       <AliveTokenDisplay
-                        aliveBalance={claimable}
+                        aliveBalance={claimable + (pendingClaim?.amount ? parseFloat(pendingClaim.amount) / 1e18 : 0)}
                         onClick={() => {
                           playSound(soundToken);
                           setIsClaimModalOpen(true);
@@ -969,7 +978,7 @@ export default function Home() {
       {scanlineEffect}
 
       {/* 领取奖励模态框 */}
-      <ClaimModal isOpen={isClaimModalOpen} onClose={() => setIsClaimModalOpen(false)} />
+      <ClaimModal isOpen={isClaimModalOpen} onClose={() => setIsClaimModalOpen(false)} pendingClaim={pendingClaim} />
 
       {/* 信息模态框 */}
       <InfoModal isOpen={isInfoModalOpen} onClose={() => setIsInfoModalOpen(false)} />
