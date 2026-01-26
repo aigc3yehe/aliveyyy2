@@ -14,13 +14,13 @@ interface LeaderboardDisplayItem {
   address: string;
   hp: number;
   streaks: number;
-  alive: number;
+  bonus: number;
   avatar: string;
 }
 
 export default function Leaderboard() {
   const { address } = useAccount();
-  const { hp, streaks, optimisticClaimedRewards, language, fetchUserStatus } = useGameStore();
+  const { hp, streaks, survivalMultiplier, language, fetchUserStatus } = useGameStore();
 
   useEffect(() => {
     if (address) {
@@ -29,7 +29,7 @@ export default function Leaderboard() {
   }, [address, fetchUserStatus]);
 
   // Use SWR for fetching leaderboard
-  const { data: rawLeaderboardData } = useSWR<LeaderboardEntry[]>('/dashboard/leaderboard?sortBy=optimisticClaimedRewards', fetcher);
+  const { data: rawLeaderboardData } = useSWR<LeaderboardEntry[]>('/dashboard/leaderboard?sortBy=rewardWeight', fetcher);
 
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardDisplayItem[]>([]);
 
@@ -40,7 +40,7 @@ export default function Leaderboard() {
         address: entry.address,
         hp: entry.hp,
         streaks: entry.consecutiveCheckinDays,
-        alive: parseFloat(entry.claimRewards || entry.accruedRewards) / 1e18,
+        bonus: entry.multiplier,
         avatar: index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤'
       }));
       setLeaderboardData(mappedData);
@@ -165,15 +165,17 @@ export default function Leaderboard() {
                       </motion.div>
                     </div>
                     <div>
-                      <div className="text-gray-500 text-xs mb-1">$活着呢:</div>
+                      <div className="text-gray-500 text-xs mb-1">
+                        {language === 'en' ? 'BONUS:' : '加成:'}
+                      </div>
                       <motion.div
                         className="text-[#00ff41] text-lg font-bold"
-                        key={optimisticClaimedRewards}
+                        key={survivalMultiplier}
                         initial={{ scale: 1.2, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.2 }}
                       >
-                        {formatTokenCount(optimisticClaimedRewards)}
+                        x{survivalMultiplier.toFixed(2)}
                       </motion.div>
                     </div>
                   </div>
@@ -192,7 +194,9 @@ export default function Leaderboard() {
                   <div className="text-[#00ff41] font-mono text-xs text-center">
                     {language === 'en' ? 'DAYS' : '天数'}
                   </div>
-                  <div className="text-[#00ff41] font-mono text-xs text-right">$活着呢</div>
+                  <div className="text-[#00ff41] font-mono text-xs text-right">
+                    {language === 'en' ? 'BONUS' : '加成'}
+                  </div>
                 </div>
 
                 {/* 排行榜数据 */}
@@ -238,7 +242,7 @@ export default function Leaderboard() {
                     {/* $活着呢 */}
                     <div className="flex items-center justify-end">
                       <span className="text-white font-mono text-xs font-bold">
-                        {formatTokenCount(player.alive)}
+                        x{player.bonus.toFixed(2)}
                       </span>
                     </div>
                   </motion.div>
