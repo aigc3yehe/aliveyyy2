@@ -82,6 +82,7 @@ interface GameState {
   updateHpFromTime: () => void;
   claimRewards: (walletClient: WalletClient) => Promise<{ hash: string; amount: number }>; // Changed signature to return amount
   buyItem: (item: ShopItem, walletClient: WalletClient) => Promise<void>;
+  reconnect: (mode: 'standard' | 'defibrillator') => Promise<void>;
 }
 
 export interface LeaderboardEntry {
@@ -277,6 +278,28 @@ export const useGameStore = create<GameState>((set, get) => ({
       // 3. UI Update handled by SWR revalidation
     } catch (error) {
       console.error('Purchase failed:', error);
+      throw error;
+    }
+  },
+
+  reconnect: async (mode: 'standard' | 'defibrillator') => {
+    try {
+      const response = await api.post<{ data: UserStatusResponse }>('/reconnects', { mode });
+      const userData = response.data.data;
+
+      // Update local state immediately
+      set({
+        hp: userData.hp,
+        maxHp: userData.maxHp,
+        isAlive: userData.status === 'ALIVE',
+        streaks: userData.consecutiveCheckinDays,
+        // Update user items to reflect consumed defibrillator if applicable
+        userItems: userData.items || get().userItems,
+      });
+
+      return;
+    } catch (error) {
+      console.error('Reconnect failed:', error);
       throw error;
     }
   },

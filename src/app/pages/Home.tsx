@@ -99,17 +99,20 @@ export default function Home() {
   // Use Authenticated state for game access instead of just wallet connection
   const hasAccess = isConnected && isAuthenticated;
 
-  const { hp, maxHp, aliveBalance, isAlive, streaks, survivalMultiplier, dopamineIndex, audioState, language, checkIn, cycleAudioState, setLanguage, claimable, userEmissionRate } = useGameStore();
+  const { hp, maxHp, isAlive, streaks, survivalMultiplier, dopamineIndex, audioState, language, checkIn, reconnect, cycleAudioState, setLanguage, claimable, userEmissionRate, userItems } = useGameStore();
   const { config: decorationConfig, isLoading: isDecorationLoading, layerOverrides, handleLayerClick, setLayerOverride, clearLayerOverride } = useDecorationStore();
   const [bottomScale, setBottomScale] = useState(1);
   const [topScale, setTopScale] = useState(1);
 
-  // Calculate daily rate from emission rate (tokens/sec * 86400)
+  // Calculate effective decoration config (applying item effects)
+  const hasSoulMate = userItems.some(i => i.code === 'SOUL_MATE' || i.code === 'soul_mate');
+
+  const effectiveConfig = {
+    ...decorationConfig,
+    bed: hasSoulMate ? 'doll' : decorationConfig.bed
+  } as const;
+
   const dailyRate = userEmissionRate * 86400;
-
-  // ... (rest of component state)
-
-  // Skip down to rendering part...
 
   // Placeholder for component state spacing
   const [currentHeartImg, setCurrentHeartImg] = useState(imgHeartBtn);
@@ -357,6 +360,7 @@ export default function Home() {
       <div className="hidden md:block absolute inset-0 bg-black/60" />
 
       {/* 失联模式全屏滤镜/弹窗 - 仅在未Dismiss时显示 */}
+      {/* 失联模式全屏滤镜/弹窗 - 仅在未Dismiss时显示 */}
       {!isAlive && !isLostContactDismissed && (
         <motion.div
           className="absolute inset-0 bg-gray-900/90 z-50 flex items-center justify-center p-4"
@@ -394,27 +398,71 @@ export default function Home() {
                 <p className="text-white text-xl font-bold mb-6">
                   {language === 'en' ? 'Vital Signs Lost' : '检测到生命体征消失'}
                 </p>
-                <div className="space-y-4 text-gray-300 mb-8">
-                  <p>
-                    {language === 'en'
-                      ? 'Please continue pressing the HEART button to activate/accumulate Tokens.'
-                      : '请持续按压心脏以激活/积累Token'}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {language === 'en'
-                      ? 'Manual CPR can restore HP.'
-                      : '持续手动按压可恢复生命值'}
-                  </p>
+
+                {/* Revive Options */}
+                <div className="space-y-4">
+
+                  {/* Option 1: Defibrillator Revive */}
+                  {(() => {
+                    const hasDefibItem = userItems.some(i => i.code === 'DEFIBRILLATOR' && i.quantity > 0);
+                    return (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const { reconnect } = useGameStore.getState();
+                            await reconnect('defibrillator');
+                            toast.success(language === 'en' ? 'Revived with Defibrillator!' : '使用起搏器复活成功！');
+                            setIsLostContactDismissed(true);
+                          } catch (e) {
+                            toast.error(language === 'en' ? 'Failed to revive' : '复活失败');
+                          }
+                        }}
+                        disabled={!hasDefibItem}
+                        className={`w-full py-4 rounded-xl font-bold tracking-wide transition-all border flex flex-col items-center justify-center gap-1
+                          ${hasDefibItem
+                            ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+                            : 'bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed opacity-70'}
+                        `}
+                      >
+                        <span className="text-lg">
+                          {language === 'en' ? 'USE DEFIBRILLATOR' : '使用心脏起搏器'}
+                        </span>
+                        <span className="text-xs opacity-80 font-normal">
+                          {language === 'en' ? 'Preserve Streak & Rewards' : '保留连胜和未领奖励'}
+                        </span>
+                        {!hasDefibItem && (
+                          <span className="text-[10px] text-red-400 mt-1 uppercase tracking-wider">
+                            {language === 'en' ? '(Out of Stock)' : '(库存不足)'}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })()}
+
+                  {/* Option 2: Standard Revive */}
+                  <button
+                    onClick={async () => {
+                      try {
+                        const { reconnect } = useGameStore.getState();
+                        await reconnect('standard');
+                        toast.success(language === 'en' ? 'Revived! Streak reset.' : '复活成功！连胜已重置。');
+                        setIsLostContactDismissed(true);
+                      } catch (e) {
+                        toast.error(language === 'en' ? 'Failed to revive' : '复活失败');
+                      }
+                    }}
+                    className="w-full bg-stone-800 hover:bg-stone-700 text-white py-4 rounded-xl font-bold tracking-wide transition-colors border border-stone-600"
+                  >
+                    <div className="flex flex-col items-center">
+                      <span>{language === 'en' ? 'STANDARD REVIVE' : '普通复活'}</span>
+                      <span className="text-xs text-stone-400 font-normal mt-1">
+                        {language === 'en' ? 'Reset Streak & Unclaimed' : '重置连胜和未领奖励'}
+                      </span>
+                    </div>
+                  </button>
+
                 </div>
 
-                <motion.button
-                  onClick={() => setIsLostContactDismissed(true)}
-                  className="w-full bg-stone-800 hover:bg-stone-700 text-white py-4 rounded-xl font-bold tracking-wide transition-colors border border-stone-600"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {language === 'en' ? 'I UNDERSTAND' : '我知道了'}
-                </motion.button>
               </div>
             </motion.div>
           </div>
@@ -444,14 +492,14 @@ export default function Home() {
 
             {/* Layer 6: 最底层背景 (total_bg) */}
             <img
-              src={DECORATION_ASSETS.background[isAlive ? (layerOverrides.background || decorationConfig.background) : 'default']}
+              src={DECORATION_ASSETS.background[isAlive ? (layerOverrides.background || effectiveConfig.background) : 'default']}
               alt="Background"
               className="absolute inset-0 w-full h-full object-cover"
               style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
             />
             {/* Layer 5: 全息显示屏 (Holographic display) - with breathing cyan glow */}
             <img
-              src={DECORATION_ASSETS.holographic[isAlive ? (layerOverrides.holographic || decorationConfig.holographic) : 'default']}
+              src={DECORATION_ASSETS.holographic[isAlive ? (layerOverrides.holographic || effectiveConfig.holographic) : 'default']}
               alt="Holographic Display"
               className="absolute inset-0 w-full h-full object-cover animate-holographic-glow"
               style={{
@@ -460,28 +508,28 @@ export default function Home() {
             />
             {/* Layer 4: 照片 (photo) */}
             <img
-              src={DECORATION_ASSETS.photo[isAlive ? (layerOverrides.photo || decorationConfig.photo) : 'default']}
+              src={DECORATION_ASSETS.photo[isAlive ? (layerOverrides.photo || effectiveConfig.photo) : 'default']}
               alt="Photo"
               className="absolute inset-0 w-full h-full object-cover"
               style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
             />
             {/* Layer 3: 玩家 (player) */}
             <img
-              src={DECORATION_ASSETS.player[isAlive ? (layerOverrides.player || decorationConfig.player) : 'deadman']}
+              src={DECORATION_ASSETS.player[isAlive ? (layerOverrides.player || effectiveConfig.player) : 'deadman']}
               alt="Player"
               className="absolute inset-0 w-full h-full object-cover pointer-events-none"
               style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
             />
             {/* Layer 2: 床 (bed) */}
             <img
-              src={DECORATION_ASSETS.bed[isAlive ? (layerOverrides.bed || decorationConfig.bed) : 'default']}
+              src={DECORATION_ASSETS.bed[isAlive ? (layerOverrides.bed || effectiveConfig.bed) : 'default']}
               alt="Bed"
               className="absolute inset-0 w-full h-full object-cover pointer-events-none"
               style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
             />
             {/* Layer 1: 最顶层炉子 (stove) */}
             <img
-              src={DECORATION_ASSETS.stove[isAlive ? (layerOverrides.stove || decorationConfig.stove) : 'default']}
+              src={DECORATION_ASSETS.stove[isAlive ? (layerOverrides.stove || effectiveConfig.stove) : 'default']}
               alt="Stove"
               className="absolute inset-0 w-full h-full object-cover pointer-events-none"
               style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
@@ -494,8 +542,7 @@ export default function Home() {
                 className="absolute left-0 bottom-0 w-1/2 h-2/3 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log('[Home] Bed zone clicked!');
-                  handleLayerClick('bed');
+                  handleLayerClick('bed', effectiveConfig);
                 }}
               />
 
@@ -505,8 +552,7 @@ export default function Home() {
                 className="absolute left-[35%] bottom-[10%] w-[30%] h-[60%] cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log('[Home] Player zone clicked!');
-                  handleLayerClick('player');
+                  handleLayerClick('player', effectiveConfig);
                 }}
               />
             </div>

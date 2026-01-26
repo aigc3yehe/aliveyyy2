@@ -38,7 +38,7 @@ interface DecorationState {
   resetToDefaults: () => void;
 
   // Animation actions
-  handleLayerClick: (layer: DecorationLayer) => void;
+  handleLayerClick: (layer: DecorationLayer, overrideConfig?: DecorationConfig) => void;
   setLayerOverride: (layer: DecorationLayer, asset: string) => void;
   clearLayerOverride: (layer: DecorationLayer) => void;
   clearAllOverrides: () => void;
@@ -171,11 +171,12 @@ export const useDecorationStore = create<DecorationState>((set, get) => {
     },
 
     // Animation actions
-    handleLayerClick: (layer: DecorationLayer) => {
+    handleLayerClick: (layer: DecorationLayer, overrideConfig?: DecorationConfig) => {
       const state = get();
 
       console.log('[Animation Debug] Layer clicked:', layer);
       console.log('[Animation Debug] Current config:', state.config);
+      console.log('[Animation Debug] Override config:', overrideConfig);
       console.log('[Animation Debug] isAnimating:', state.isAnimating);
 
       // Prevent re-triggering during animation
@@ -185,7 +186,9 @@ export const useDecorationStore = create<DecorationState>((set, get) => {
       }
 
       // Find matching animation
-      const animation = findAnimationForClick(layer, state.config as Record<DecorationLayer, string>);
+      // Use overrideConfig if provided, otherwise fallback to store config
+      const configToUse = overrideConfig || state.config;
+      const animation = findAnimationForClick(layer, configToUse as Record<DecorationLayer, string>);
       console.log('[Animation Debug] Found animation:', animation?.id || 'NONE');
 
       if (!animation) {
