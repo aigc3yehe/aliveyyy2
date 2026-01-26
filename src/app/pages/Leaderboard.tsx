@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { Link } from 'react-router';
 import { ArrowLeft, TrendingUp } from 'lucide-react';
+import { useAccount } from 'wagmi';
 import { useGameStore, LeaderboardEntry } from '@/app/stores/useGameStore';
 import { fetcher } from '@/services/api';
 import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95cdb7a89980e1a1c18de7.webp';
@@ -18,7 +19,14 @@ interface LeaderboardDisplayItem {
 }
 
 export default function Leaderboard() {
-  const { hp, streaks, aliveBalance, language } = useGameStore();
+  const { address } = useAccount();
+  const { hp, streaks, optimisticClaimedRewards, language, fetchUserStatus } = useGameStore();
+
+  useEffect(() => {
+    if (address) {
+      fetchUserStatus(address);
+    }
+  }, [address, fetchUserStatus]);
 
   // Use SWR for fetching leaderboard
   const { data: rawLeaderboardData } = useSWR<LeaderboardEntry[]>('/dashboard/leaderboard?sortBy=optimisticClaimedRewards', fetcher);
@@ -160,12 +168,12 @@ export default function Leaderboard() {
                       <div className="text-gray-500 text-xs mb-1">$活着呢:</div>
                       <motion.div
                         className="text-[#00ff41] text-lg font-bold"
-                        key={aliveBalance.toFixed(2)}
+                        key={optimisticClaimedRewards}
                         initial={{ scale: 1.2, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.2 }}
                       >
-                        {formatTokenCount(aliveBalance)}
+                        {formatTokenCount(optimisticClaimedRewards)}
                       </motion.div>
                     </div>
                   </div>
@@ -205,7 +213,7 @@ export default function Leaderboard() {
                     {/* 地址 */}
                     <div className="flex items-center">
                       <span className="text-gray-300 font-mono text-xs truncate">
-                        {player.address}
+                        {`${player.address.slice(0, 5)}...${player.address.slice(-3)}`}
                       </span>
                     </div>
 

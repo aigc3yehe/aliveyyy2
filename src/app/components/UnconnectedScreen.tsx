@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useGameStore } from '@/app/stores/useGameStore';
+import useSWR from 'swr';
+import { api, fetcher } from '@/services/api';
+import { DashboardSummaryResponse } from '@/app/stores/useGameStore';
 import { formatTokenCount } from '@/utils/format';
 
 interface UnconnectedScreenProps {
@@ -9,14 +11,9 @@ interface UnconnectedScreenProps {
 }
 
 export function UnconnectedScreen({ language = 'en' }: UnconnectedScreenProps) {
-  const { globalStats, fetchGlobalStats } = useGameStore();
-
-  useEffect(() => {
-    fetchGlobalStats();
-    // Poll every 30 seconds
-    const interval = setInterval(fetchGlobalStats, 30000);
-    return () => clearInterval(interval);
-  }, [fetchGlobalStats]);
+  const { data: globalStats } = useSWR<DashboardSummaryResponse>('/dashboard/summary', fetcher, {
+    refreshInterval: 30000
+  });
 
   // Default fallback if loading
   const stats = globalStats ? {

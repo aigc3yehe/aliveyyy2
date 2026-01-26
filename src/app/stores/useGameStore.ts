@@ -14,8 +14,9 @@ interface UserStatusResponse {
   unclaimedDays: number;
   multiplier: number;
   claimable: string;
-  hasDefibrillator: boolean;
+
   items: { code: string; quantity: number }[];
+  optimisticClaimedRewards: string;
 }
 
 export interface DashboardSummaryResponse {
@@ -56,6 +57,7 @@ interface GameState {
   audioState: 'all' | 'sfx_only' | 'mute';
   language: 'en' | 'cn';
   claimable: number; userEmissionRate: number;
+  optimisticClaimedRewards: number; // Add this
   lastTickTime: number;
   globalStats: DashboardSummaryResponse | null;
   items: ShopItem[];
@@ -109,6 +111,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   language: 'en',
   claimable: 0,
   userEmissionRate: 0,
+  optimisticClaimedRewards: 0,
   lastTickTime: Date.now(),
   globalStats: null,
   items: [],
@@ -151,6 +154,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       // Parse token values
       const claimable = parseFloat(userData.claimable) / 1e18;
+      const optimisticClaimedRewards = parseFloat(userData.optimisticClaimedRewards || '0') / 1e18;
 
       // Calculate Emission Rate
       // Formula: Rate = GlobalEmission * (UserMultiplier * 1e6) / TotalWeight
@@ -185,6 +189,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         dopamineIndex: displayDopamineIndex,
         claimable: claimable,
         userEmissionRate: emissionRate,
+        optimisticClaimedRewards,
         lastTickTime: Date.now(),
         lastCheckInTime: Date.now() / 1000,
         globalStats: dashboardData,
