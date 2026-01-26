@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { motion } from 'motion/react';
 import { useWalletClient, useAccount } from 'wagmi';
 import { Link } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CircleHelp } from 'lucide-react';
 import { useGameStore, ShopItem } from '@/app/stores/useGameStore';
+import { api, fetcher } from '@/services/api';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -13,19 +15,28 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/app/components/ui/dialog';
+import { Input } from '@/app/components/ui/input';
 import { Button } from '@/app/components/ui/button';
 import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95cdb7a89980e1a1c18de7.webp';
 
 import { formatTokenCount } from '@/utils/format';
 
 export default function Store() {
-  const { aliveBalance, tokenBalance, buyItem, items, fetchItems, fetchTokenBalance, language } = useGameStore();
+  const { tokenBalance, buyItem, fetchTokenBalance, fetchUserStatus, language, userItems } = useGameStore();
   const { data: walletClient } = useWalletClient();
   const { address } = useAccount();
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [isManualDialogOpen, setIsManualDialogOpen] = useState(false);
+  const [manualClaimCode, setManualClaimCode] = useState<string>('');
+  const [manualClaimHash, setManualClaimHash] = useState<string>('');
+  const [manualClaimQuantity, setManualClaimQuantity] = useState<string>('1');
+  const [isManualClaiming, setIsManualClaiming] = useState(false);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+
+  // Use SWR for fetching items
+  const { data: items = [] } = useSWR<ShopItem[]>('/items', fetcher);
 
   const handleImageError = (code: string) => {
     setFailedImages(prev => {
@@ -36,11 +47,11 @@ export default function Store() {
   };
 
   useEffect(() => {
-    fetchItems();
     if (address) {
       fetchTokenBalance(address);
+      fetchUserStatus(address);
     }
-  }, [fetchItems, fetchTokenBalance, address]);
+  }, [fetchTokenBalance, fetchUserStatus, address]);
 
   const handlePurchase = async () => {
     if (!selectedItem || !walletClient) return;
@@ -63,6 +74,53 @@ export default function Store() {
       });
     } finally {
       setIsPurchasing(false);
+    }
+  };
+
+  const handleManualClaim = async () => {
+    if (!manualClaimCode || !manualClaimHash) {
+      toast.error(language === 'en' ? 'Missing Information' : '缺少信息', {
+        description: language === 'en' ? 'Please select an item and enter transaction hash' : '请选择商品并输入交易哈希'
+      });
+      return;
+    }
+
+    try {
+      setIsManualClaiming(true);
+
+      const quantity = parseInt(manualClaimQuantity) || 1;
+
+      await api.post('/items/purchase', {
+        code: manualClaimCode,
+        quantity: quantity,
+        txHash: manualClaimHash,
+      });
+
+      // Refresh data
+      if (address) {
+        fetchTokenBalance(address);
+        // Refresh user status logic is mainly in useGameStore but we can trigger a generic update or just assume success toast is enough
+        const { fetchUserStatus } = useGameStore.getState();
+        await fetchUserStatus(address);
+      }
+
+      toast.success(language === 'en' ? 'Claim Successful!' : '取回成功！', {
+        description: language === 'en' ? 'Item has been added to your inventory' : '物品已添加到您的背包'
+      });
+      setIsManualDialogOpen(false);
+
+      // Reset form
+      setManualClaimCode('');
+      setManualClaimHash('');
+      setManualClaimQuantity('1');
+
+    } catch (error: any) {
+      console.error('Manual claim error:', error);
+      toast.error(language === 'en' ? 'Claim Failed' : '取回失败', {
+        description: error.response?.data?.message || 'Verification failed'
+      });
+    } finally {
+      setIsManualClaiming(false);
     }
   };
 
@@ -259,6 +317,11 @@ export default function Store() {
             </DialogTitle>
             <DialogDescription className="text-gray-400 pt-2">
               {language === 'en' ? 'Authorize transaction?' : '是否授权此交易?'}
+              {selectedItem?.maxQuantity && (
+                <span className="block text-[#00ff41] text-xs mt-1">
+                  {language === 'en' ? `Limit: ${selectedItem.maxQuantity}` : `限购: ${selectedItem.maxQuantity}`}
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
 
@@ -291,6 +354,25 @@ export default function Store() {
                   {`${formatTokenCount(Number(selectedItem.price))} $活着呢`}
                 </span>
               </div>
+
+              <div className="flex justify-between items-center text-xs text-gray-400 pl-1">
+                <div className="flex items-center gap-1">
+                  <span>{language === 'en' ? 'YOU OWN:' : '当前拥有:'}</span>
+                  <span className="text-[#00ff41] font-bold">
+                    {userItems.find(i => i.code === selectedItem.code)?.quantity || 0}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    setManualClaimCode(selectedItem.code);
+                    setIsManualDialogOpen(true);
+                  }}
+                  className="flex items-center gap-1 text-[#00ff41]/50 hover:text-[#00ff41] transition-colors cursor-pointer"
+                  title={language === 'en' ? 'Manual Retrieve' : '自助取回'}
+                >
+                  <CircleHelp className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           )}
 
@@ -303,11 +385,78 @@ export default function Store() {
               {language === 'en' ? 'CANCEL' : '取消'}
             </Button>
             <Button
-              className="bg-[#00ff41] text-black hover:bg-[#00ff41]/80 rounded-none font-bold w-full sm:w-auto"
+              className="bg-[#00ff41] text-black hover:bg-[#00ff41]/80 rounded-none font-bold w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handlePurchase}
-              disabled={isPurchasing}
+              disabled={isPurchasing || (selectedItem ? (userItems.find(i => i.code === selectedItem.code)?.quantity ?? 0) >= (selectedItem.maxQuantity ?? Infinity) : false)}
             >
-              {isPurchasing ? (language === 'en' ? 'PURCHASING...' : '购买中...') : (language === 'en' ? 'CONFIRM' : '确认')}
+              {isPurchasing
+                ? (language === 'en' ? 'PURCHASING...' : '购买中...')
+                : (selectedItem && (userItems.find(i => i.code === selectedItem.code)?.quantity ?? 0) >= (selectedItem.maxQuantity ?? Infinity))
+                  ? (language === 'en' ? 'LIMIT REACHED' : '已达上限')
+                  : (language === 'en' ? 'CONFIRM' : '确认')
+              }
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* 自助取回弹窗 */}
+      <Dialog open={isManualDialogOpen} onOpenChange={setIsManualDialogOpen}>
+        <DialogContent className="border-[#00ff41] bg-black text-[#00ff41] font-mono max-w-[90vw] w-80 sm:w-96 rounded-none border-2">
+          <DialogHeader>
+            <DialogTitle className="text-xl border-b border-[#00ff41]/30 pb-2">
+              {language === 'en' ? 'MANUAL RETRIEVE' : '自助取回'}
+            </DialogTitle>
+            <DialogDescription className="text-gray-400 pt-2 text-xs">
+              {language === 'en'
+                ? 'Use this if transaction succeeded but item was not received.'
+                : '如果交易成功但未收到物品，请使用此功能。'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs text-gray-400">{language === 'en' ? 'Item' : '物品'}</label>
+              <div className="bg-black border border-[#00ff41]/50 text-[#00ff41] px-3 py-2 text-sm font-bold">
+                {items.find(i => i.code === manualClaimCode)?.name || manualClaimCode}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-gray-400">{language === 'en' ? 'Quantity' : '数量'}</label>
+              <Input
+                type="number"
+                value={manualClaimQuantity}
+                onChange={(e) => setManualClaimQuantity(e.target.value)}
+                className="bg-black border-[#00ff41]/50 text-[#00ff41] rounded-none focus-visible:ring-[#00ff41]"
+                min="1"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-gray-400">{language === 'en' ? 'Transaction Hash' : '交易哈希 (TxHash)'}</label>
+              <Input
+                value={manualClaimHash}
+                onChange={(e) => setManualClaimHash(e.target.value)}
+                placeholder="0x..."
+                className="bg-black border-[#00ff41]/50 text-[#00ff41] rounded-none focus-visible:ring-[#00ff41]"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2 mt-2">
+            <Button
+              variant="outline"
+              className="bg-black border-[#00ff41]/50 text-[#00ff41] hover:bg-[#00ff41]/10 hover:text-[#00ff41] rounded-none w-full sm:w-auto"
+              onClick={() => setIsManualDialogOpen(false)}
+            >
+              {language === 'en' ? 'CANCEL' : '取消'}
+            </Button>
+            <Button
+              className="bg-[#00ff41] text-black hover:bg-[#00ff41]/80 rounded-none font-bold w-full sm:w-auto"
+              onClick={handleManualClaim}
+              disabled={isManualClaiming}
+            >
+              {isManualClaiming ? (language === 'en' ? 'VERIFYING...' : '验证中...') : (language === 'en' ? 'CONFIRM' : '确认')}
             </Button>
           </DialogFooter>
         </DialogContent>

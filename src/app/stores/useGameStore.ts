@@ -15,6 +15,7 @@ interface UserStatusResponse {
   multiplier: number;
   claimable: string;
   hasDefibrillator: boolean;
+  items: { code: string; quantity: number }[];
 }
 
 export interface DashboardSummaryResponse {
@@ -31,7 +32,10 @@ export interface ShopItem {
   description: string;
   price: string;
   cover: string;
-  effects: {
+  isConsumable: boolean;
+  maxQuantity?: number;
+  // TODO: Verify if effects are needed or returned by backend. Currently backend DTO does not have them.
+  effects?: {
     type: 'HEAL' | 'BUFF' | 'REVIVE';
     value: number;
     duration?: number;
@@ -55,6 +59,7 @@ interface GameState {
   lastTickTime: number;
   globalStats: DashboardSummaryResponse | null;
   items: ShopItem[];
+  userItems: { code: string; quantity: number }[];
   tokenBalance: string;
 
   setHp: (hp: number) => void;
@@ -75,9 +80,7 @@ interface GameState {
   updateHpFromTime: () => void;
   claimRewards: (walletClient: WalletClient) => Promise<{ hash: string; amount: number }>; // Changed signature to return amount
   buyItem: (item: ShopItem, walletClient: WalletClient) => Promise<void>;
-  fetchItems: () => Promise<void>;
   fetchTokenBalance: (address: string) => Promise<void>;
-  fetchLeaderboard: () => Promise<LeaderboardEntry[]>;
   fetchGlobalStats: () => Promise<void>;
 }
 
@@ -109,6 +112,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   lastTickTime: Date.now(),
   globalStats: null,
   items: [],
+  userItems: [],
   tokenBalance: '0',
 
   setHp: (hp) => set({ hp }),
@@ -184,6 +188,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         lastTickTime: Date.now(),
         lastCheckInTime: Date.now() / 1000,
         globalStats: dashboardData,
+        userItems: userData.items || [],
       });
     } catch (error) {
       console.error('Failed to fetch user status or global stats:', error);
@@ -347,15 +352,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-  fetchItems: async () => {
-    try {
-      const response = await api.get<{ data: ShopItem[] }>('/items');
-      set({ items: response.data.data });
-    } catch (error) {
-      console.error('Failed to fetch items:', error);
-    }
-  },
-
   fetchTokenBalance: async (address: string) => {
     try {
       const tokenAddress = import.meta.env.VITE_ALIVE_TOKEN as `0x${string}`;
@@ -371,18 +367,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({ tokenBalance: formatEther(balance) });
     } catch (error) {
       console.error('Failed to fetch token balance:', error);
-    }
-  },
-
-  fetchLeaderboard: async () => {
-    try {
-      const response = await api.get<{ data: LeaderboardEntry[] }>('/dashboard/leaderboard', {
-        params: { sortBy: 'optimisticClaimedRewards' }
-      });
-      return response.data.data;
-    } catch (error) {
-      console.error('Failed to fetch leaderboard:', error);
-      return [];
     }
   },
 

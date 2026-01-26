@@ -1,8 +1,10 @@
 import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { Link } from 'react-router';
 import { ArrowLeft, TrendingUp } from 'lucide-react';
-import { useGameStore } from '@/app/stores/useGameStore';
+import { useGameStore, LeaderboardEntry } from '@/app/stores/useGameStore';
+import { fetcher } from '@/services/api';
 import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95cdb7a89980e1a1c18de7.webp';
 import { formatTokenCount } from '@/utils/format';
 
@@ -16,30 +18,26 @@ interface LeaderboardDisplayItem {
 }
 
 export default function Leaderboard() {
-  const { hp, streaks, aliveBalance, language, fetchLeaderboard } = useGameStore();
+  const { hp, streaks, aliveBalance, language } = useGameStore();
+
+  // Use SWR for fetching leaderboard
+  const { data: rawLeaderboardData } = useSWR<LeaderboardEntry[]>('/dashboard/leaderboard?sortBy=optimisticClaimedRewards', fetcher);
+
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardDisplayItem[]>([]);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const data = await fetchLeaderboard();
-        if (data) {
-          const mappedData = data.map((entry, index) => ({
-            rank: index + 1,
-            address: entry.address,
-            hp: entry.hp,
-            streaks: entry.consecutiveCheckinDays,
-            alive: parseFloat(entry.claimRewards || entry.accruedRewards) / 1e18,
-            avatar: index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤'
-          }));
-          setLeaderboardData(mappedData);
-        }
-      } catch (error) {
-        console.error('Failed to load leaderboard', error);
-      }
-    };
-    loadData();
-  }, [fetchLeaderboard]);
+    if (rawLeaderboardData) {
+      const mappedData = rawLeaderboardData.map((entry, index) => ({
+        rank: index + 1,
+        address: entry.address,
+        hp: entry.hp,
+        streaks: entry.consecutiveCheckinDays,
+        alive: parseFloat(entry.claimRewards || entry.accruedRewards) / 1e18,
+        avatar: index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤'
+      }));
+      setLeaderboardData(mappedData);
+    }
+  }, [rawLeaderboardData]);
 
   // CRT 扫描线效果
   const scanlineEffect = (
