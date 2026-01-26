@@ -623,12 +623,12 @@ export default function Home() {
                 {/* Twitter Link - Right aligned */}
                 <div className="absolute right-[34px] top-[24px] z-20 h-4 flex items-center">
                   <a
-                    href="https://twitter.com/huozheneofficial"
+                    href="https://twitter.com/yeahhuozhene"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#00ff41] font-mono text-xs font-bold drop-shadow-[0_0_4px_rgba(0,255,65,0.8)] hover:underline"
                   >
-                    @huozheneofficial
+                    @yeahhuozhene
                   </a>
                 </div>
 
@@ -747,10 +747,10 @@ export default function Home() {
                       {/* Share on X Button */}
                       <motion.button
                         onClick={() => {
-                          const rate = new Intl.NumberFormat('en-US').format(24 * 10 * dopamineIndex);
+                          const rate = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(dailyRate);
                           const text = language === 'en'
-                            ? `My current mining rate is ${rate} $活着呢/day in Alive Game! Can you survive longer than me? @huozheneofficial #AliveGame #Web3`
-                            : `我在 Alive Game 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@huozheneofficial #AliveGame #Web3`;
+                            ? `My current mining rate is ${rate} $活着呢/day in 生存证明! Can you survive longer than me? @yeahhuozhene #生存证明 #Web3`
+                            : `我在 生存证明 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@yeahhuozhene #生存证明 #Web3`;
                           window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
                         }}
                         className="w-[104px] h-auto rounded-sm overflow-hidden shadow-lg border border-black"
@@ -788,8 +788,8 @@ export default function Home() {
                     e.stopPropagation();
                     const rate = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(dailyRate);
                     const text = language === 'en'
-                      ? `My current mining rate is ${rate} $活着呢/day in Alive Game! Can you survive longer than me? @huozheneofficial #AliveGame #Web3`
-                      : `我在 Alive Game 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@huozheneofficial #AliveGame #Web3`;
+                      ? `My current mining rate is ${rate} $活着呢/day in 生存证明! Can you survive longer than me? @yeahhuozhene #生存证明 #Web3`
+                      : `我在 生存证明 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@yeahhuozhene #生存证明 #Web3`;
                     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
                   }}
                   className="text-[#00ff41] hover:text-white underline font-mono text-[11px] md:text-xs transition-colors flex items-center gap-1"

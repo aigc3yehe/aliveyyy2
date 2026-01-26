@@ -65,8 +65,8 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
 
   const handleShare = () => {
     const text = language === 'en'
-      ? `I just claimed ${formatTokenCount(claimedAmount)} $活着呢 in the Alive Game! Come and survive with me! @huozheneofficial #AliveGame #Web3`
-      : `我在 Alive Game 中领取了 ${formatTokenCount(claimedAmount)} $活着呢！快来和我一起存活吧！@huozheneofficial #AliveGame #Web3`;
+      ? `I just claimed ${formatTokenCount(claimedAmount)} $活着呢 in the 生存证明! Come and survive with me! @yeahhuozhene #生存证明 #Web3`
+      : `我在 生存证明 中领取了 ${formatTokenCount(claimedAmount)} $活着呢！快来和我一起存活吧！@yeahhuozhene #生存证明 #Web3`;
 
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
