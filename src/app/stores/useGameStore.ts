@@ -64,6 +64,7 @@ interface GameState {
   items: ShopItem[];
   userItems: { code: string; quantity: number }[];
   tokenBalance: string;
+  userNonce: number;
 
   setHp: (hp: number) => void;
   setLastCheckInTime: (time: number) => void;
@@ -118,6 +119,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   items: [],
   userItems: [],
   tokenBalance: '0',
+  userNonce: 0,
 
   setHp: (hp) => set({ hp }),
   setLastCheckInTime: (time) => set({ lastCheckInTime: time }),
@@ -150,7 +152,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       const dashboardData = dashboardResponse.data.data;
 
       // Calculate display multipliers
-      const displaySurvivalMultiplier = 1.0 + (userData.consecutiveCheckinDays * 0.1);
+      const displaySurvivalMultiplier = userData.multiplier;
       const displayDopamineIndex = 1.0 + (userData.unclaimedDays * 0.1);
 
       // Parse token values
@@ -181,6 +183,23 @@ export const useGameStore = create<GameState>((set, get) => ({
         emissionRate = globalEmissionInTokens * (userWeightRaw / totalWeight);
       }
 
+      // Fetch User Nonce from Contract
+      let userNonce = 0;
+      try {
+        const claimContractAddress = import.meta.env.VITE_ALIVE_CLAIM_CONTRACT as `0x${string}`;
+        if (claimContractAddress) {
+          const nonceBigInt = await readContract(config, {
+            address: claimContractAddress,
+            abi: AliveClaimABI,
+            functionName: 'nonces',
+            args: [address as `0x${string}`],
+          });
+          userNonce = Number(nonceBigInt);
+        }
+      } catch (err) {
+        console.error('Failed to fetch user nonce:', err);
+      }
+
       set({
         hp: userData.hp,
         maxHp: userData.maxHp,
@@ -195,6 +214,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         lastCheckInTime: Date.now() / 1000,
         globalStats: dashboardData,
         userItems: userData.items || [],
+        userNonce,
       });
     } catch (error) {
       console.error('Failed to fetch user status or global stats:', error);
@@ -227,7 +247,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       const { fetchUserStatus } = get();
 
       // Update local state with response
-      const displaySurvivalMultiplier = 1.0 + (userData.consecutiveCheckinDays * 0.1);
+      const displaySurvivalMultiplier = userData.multiplier;
       const displayDopamineIndex = 1.0 + (userData.unclaimedDays * 0.1);
 
       set({

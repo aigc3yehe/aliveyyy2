@@ -5,6 +5,14 @@ import { toast } from 'sonner';
 import { formatTokenCount } from '@/utils/format';
 import { useState } from 'react';
 import { useWalletClient } from 'wagmi';
+import useSWR from 'swr';
+import { api, fetcher } from '@/services/api';
+
+interface ClaimRecordDto {
+  id: string;
+  nonce: string;
+  amount: string;
+}
 
 interface ClaimModalProps {
   isOpen: boolean;
@@ -12,9 +20,15 @@ interface ClaimModalProps {
 }
 
 export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
-  const { claimable, dopamineIndex, claimRewards, language } = useGameStore();
+  const { claimable, dopamineIndex, claimRewards, language, userNonce } = useGameStore();
   const [claimState, setClaimState] = useState<'initial' | 'loading' | 'success'>('initial');
   const [claimedAmount, setClaimedAmount] = useState(0);
+  const { data: pendingClaim } = useSWR<ClaimRecordDto>(
+    isOpen && userNonce !== undefined ? `/claims/${userNonce}` : null,
+    fetcher
+  );
+
+  const pendingClaimAmount = pendingClaim?.amount ? parseFloat(pendingClaim.amount) / 1e18 : 0;
   const { data: walletClient } = useWalletClient();
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -161,7 +175,7 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
                 <motion.button
                   onClick={handleClaim}
                   disabled={claimable <= 0 || claimState === 'loading'}
-                  className="w-full bg-black border-2 border-[#00ff41] text-[#00ff41] py-4 font-mono text-lg font-bold hover:bg-[#00ff41] hover:text-black transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black disabled:hover:text-[#00ff41] relative"
+                  className="w-full bg-black border-2 border-[#00ff41] text-[#00ff41] py-4 font-mono text-lg font-bold hover:bg-[#00ff41] hover:text-black transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black disabled:hover:text-[#00ff41] relative flex flex-col items-center justify-center"
                   whileHover={claimable > 0 ? { scale: 1.02 } : {}}
                   whileTap={claimable > 0 && claimState !== 'loading' ? { scale: 0.98 } : {}}
                 >
@@ -169,6 +183,15 @@ export function ClaimModal({ isOpen, onClose }: ClaimModalProps) {
                     <span className="animate-pulse">{language === 'en' ? 'CLAIMING...' : '领取中...'}</span>
                   ) : (
                     '[ CLAIM_NOW ]'
+                  )}
+
+                  {pendingClaimAmount > 0 && (
+                    <div className="font-mono text-[10px] text-gray-500 mt-1">
+                      {language === 'en'
+                        ? `// Claim Pending ${formatTokenCount(pendingClaimAmount)} $活着呢`
+                        : `// 领取待定金额 ${formatTokenCount(pendingClaimAmount)} $活着呢`
+                      }
+                    </div>
                   )}
                 </motion.button>
 
