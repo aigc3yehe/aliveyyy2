@@ -18,7 +18,7 @@ export function UnconnectedScreen({ language = 'en' }: UnconnectedScreenProps) {
   // Default fallback if loading
   const stats = globalStats ? {
     alivePlayers: globalStats.aliveUsers,
-    todayPool: parseFloat(globalStats.dailyPoolRemaining) / 1e18,
+    todayPool: parseFloat(globalStats.dailyPoolTotal) / 1e18,
     todayDead: globalStats.disconnectedUsers,
   } : {
     alivePlayers: 0,

@@ -23,6 +23,7 @@ export interface DashboardSummaryResponse {
   aliveUsers: number;
   disconnectedUsers: number;
   dailyPoolRemaining: string;
+  dailyPoolTotal: string;
   totalRewardWeight: string;
   globalEmissionPerSecond: string;
 }
