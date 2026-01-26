@@ -37,7 +37,7 @@ import { AliveTokenDisplay } from '@/app/components/AliveTokenDisplay';
 import { ClaimModal } from '@/app/components/ClaimModal';
 import { StatsIndicators } from '@/app/components/StatsIndicators';
 import { UnconnectedScreen } from '@/app/components/UnconnectedScreen';
-import { DevControlPanel } from '@/app/components/DevControlPanel';
+
 import { SoundManager } from '@/app/components/SoundManager';
 import { useSound } from '@/app/hooks/useSound';
 import { Volume2, Volume1, VolumeX, LogOut, Lock, HelpCircle } from 'lucide-react';
@@ -922,8 +922,7 @@ export default function Home() {
       {/* 信息模态框 */}
       <InfoModal isOpen={isInfoModalOpen} onClose={() => setIsInfoModalOpen(false)} />
 
-      {/* 开发模式面板 */}
-      <DevControlPanel />
+
 
       {/* Global Sound Manager */}
       <SoundManager />
