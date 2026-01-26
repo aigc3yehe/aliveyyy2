@@ -88,6 +88,8 @@ const DECORATION_ASSETS: Record<string, Record<string, string>> = {
 
 import { useAuth } from '@/app/hooks/useAuth';
 import { useAccount } from 'wagmi';
+import { useUserGameData } from '@/app/hooks/useUserGameData';
+import { useDecorationData } from '@/app/hooks/useDecorationData';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -97,8 +99,8 @@ export default function Home() {
   // Use Authenticated state for game access instead of just wallet connection
   const hasAccess = isConnected && isAuthenticated;
 
-  const { hp, maxHp, aliveBalance, isAlive, streaks, survivalMultiplier, dopamineIndex, audioState, language, checkIn, cycleAudioState, setLanguage, fetchUserStatus, claimable, userEmissionRate } = useGameStore();
-  const { config: decorationConfig, isLoading: isDecorationLoading, fetchDecorations, layerOverrides, handleLayerClick, setLayerOverride, clearLayerOverride } = useDecorationStore();
+  const { hp, maxHp, aliveBalance, isAlive, streaks, survivalMultiplier, dopamineIndex, audioState, language, checkIn, cycleAudioState, setLanguage, claimable, userEmissionRate } = useGameStore();
+  const { config: decorationConfig, isLoading: isDecorationLoading, layerOverrides, handleLayerClick, setLayerOverride, clearLayerOverride } = useDecorationStore();
   const [bottomScale, setBottomScale] = useState(1);
   const [topScale, setTopScale] = useState(1);
 
@@ -121,22 +123,26 @@ export default function Home() {
 
   useGameLoop();
 
-  // Load decorations on mount
-  useEffect(() => {
-    fetchDecorations();
-  }, [fetchDecorations]);
+  // Use new SWR hooks for data fetching and syncing
+  useUserGameData(walletAddress);
+  useDecorationData();
 
-  // Fetch User Status on Authenticated
-  useEffect(() => {
-    if (hasAccess && walletAddress) {
-      fetchUserStatus(walletAddress);
-      // Optional: Poll every minute or so if real-time updates are needed without user interaction
-      const interval = setInterval(() => {
-        fetchUserStatus(walletAddress);
-      }, 60000);
-      return () => clearInterval(interval);
-    }
-  }, [hasAccess, walletAddress, fetchUserStatus]);
+  // Load decorations on mount - Removed manually calling fetchDecorations as hook handles it
+  // useEffect(() => {
+  //   fetchDecorations();
+  // }, [fetchDecorations]);
+
+  // Fetch User Status on Authenticated - Removed manually calling fetchUserStatus as hook handles it
+  // useEffect(() => {
+  //   if (hasAccess && walletAddress) {
+  //     fetchUserStatus(walletAddress);
+  //     // Optional: Poll every minute or so if real-time updates are needed without user interaction
+  //     const interval = setInterval(() => {
+  //       fetchUserStatus(walletAddress);
+  //     }, 60000);
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [hasAccess, walletAddress, fetchUserStatus]);
 
   /* Login Logic with Retry Limit */
   const [retryCount, setRetryCount] = useState(0);

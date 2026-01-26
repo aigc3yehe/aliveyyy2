@@ -5,7 +5,7 @@ import { writeContract, waitForTransactionReceipt, readContract } from '@wagmi/c
 import { config } from '@/config/wagmi';
 import AliveClaimABI from '@/abis/AliveClaim.json';
 
-interface UserStatusResponse {
+export interface UserStatusResponse {
   address: string;
   status: 'ALIVE' | 'DISCONNECTED';
   hp: number;
@@ -77,15 +77,11 @@ interface GameState {
   setSurvivalMultiplier: (multiplier: number) => void;
   cycleAudioState: () => void;
   setLanguage: (language: 'en' | 'cn') => void;
-
-  fetchUserStatus: (address: string) => Promise<void>;
   tick: () => void;
   checkIn: () => Promise<void>; // Needs to be async
   updateHpFromTime: () => void;
   claimRewards: (walletClient: WalletClient) => Promise<{ hash: string; amount: number }>; // Changed signature to return amount
   buyItem: (item: ShopItem, walletClient: WalletClient) => Promise<void>;
-  fetchTokenBalance: (address: string) => Promise<void>;
-  fetchGlobalStats: () => Promise<void>;
 }
 
 export interface LeaderboardEntry {
@@ -140,86 +136,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   }),
   setLanguage: (language) => set({ language }),
 
-  fetchUserStatus: async (address: string) => {
-    try {
-      // Fetch User Status and Global Dashboard Summary in parallel
-      const [userResponse, dashboardResponse] = await Promise.all([
-        api.get<{ data: UserStatusResponse }>(`/users/${address}`),
-        api.get<{ data: DashboardSummaryResponse }>('/dashboard/summary')
-      ]);
-
-      const userData = userResponse.data.data;
-      const dashboardData = dashboardResponse.data.data;
-
-      // Calculate display multipliers
-      const displaySurvivalMultiplier = userData.multiplier;
-      const displayDopamineIndex = 1.0 + (userData.unclaimedDays * 0.1);
-
-      // Parse token values
-      const claimable = parseFloat(userData.claimable) / 1e18;
-      const optimisticClaimedRewards = parseFloat(userData.optimisticClaimedRewards || '0') / 1e18;
-
-      // Calculate Emission Rate
-      // Formula: Rate = GlobalEmission * (UserMultiplier * 1e6) / TotalWeight
-      // Note: Backend stores weights scaled by 1e6. User multiplier is a float derived from that.
-      // So UserWeight approx = UserMultiplier * 1,000,000
-
-      const globalEmission = parseFloat(dashboardData.globalEmissionPerSecond); // Raw BigInt string, treated as float for rough rate
-      const totalWeight = parseFloat(dashboardData.totalRewardWeight);
-      // Wait, globalEmission string is 1e18 scaled integer string.
-      // totalWeight is 1e6 scaled integer string.
-      // We need final rate in "Tokens" (1.0 = 1e18 raw units).
-
-      // Let's do calculation in "Token Units":
-      const globalEmissionInTokens = globalEmission / 1e18;
-
-      // User Weight is effectively proportional to totalWeight.
-      // Both are scaled by 10,000 (WEIGHT_SCALE from backend).
-      // User Weight Raw = userData.multiplier * 10,000.
-      const userWeightRaw = userData.multiplier * 10000;
-
-      let emissionRate = 0;
-      if (totalWeight > 0) {
-        emissionRate = globalEmissionInTokens * (userWeightRaw / totalWeight);
-      }
-
-      // Fetch User Nonce from Contract
-      let userNonce = 0;
-      try {
-        const claimContractAddress = import.meta.env.VITE_ALIVE_CLAIM_CONTRACT as `0x${string}`;
-        if (claimContractAddress) {
-          const nonceBigInt = await readContract(config, {
-            address: claimContractAddress,
-            abi: AliveClaimABI,
-            functionName: 'nonces',
-            args: [address as `0x${string}`],
-          });
-          userNonce = Number(nonceBigInt);
-        }
-      } catch (err) {
-        console.error('Failed to fetch user nonce:', err);
-      }
-
-      set({
-        hp: userData.hp,
-        maxHp: userData.maxHp,
-        isAlive: userData.status === 'ALIVE',
-        streaks: userData.consecutiveCheckinDays,
-        survivalMultiplier: displaySurvivalMultiplier,
-        dopamineIndex: displayDopamineIndex,
-        claimable: claimable,
-        userEmissionRate: emissionRate,
-        optimisticClaimedRewards,
-        lastTickTime: Date.now(),
-        lastCheckInTime: Date.now() / 1000,
-        globalStats: dashboardData,
-        userItems: userData.items || [],
-        userNonce,
-      });
-    } catch (error) {
-      console.error('Failed to fetch user status or global stats:', error);
-    }
-  },
+  // fetchUserStatus, fetchTokenBalance, fetchGlobalStats removed in favor of useUserGameData hook
 
   tick: () => {
     const state = get();
@@ -244,7 +161,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       // Call backend
       const response = await api.post<{ data: UserStatusResponse }>('/checkins', {});
       const userData = response.data.data;
-      const { fetchUserStatus } = get();
 
       // Update local state with response
       const displaySurvivalMultiplier = userData.multiplier;
@@ -260,8 +176,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         lastCheckInTime: Date.now() / 1000,
       });
 
-      // Refetch full status to align everything
-      await fetchUserStatus(userData.address);
+      // Note: We rely on SWR polling or manual mutation (if passed) to refresh full status
+      // Ideally the component calling this should trigger the mutate from the hook 
 
     } catch (error) {
       console.error('Check-in failed:', error);
@@ -322,11 +238,6 @@ export const useGameStore = create<GameState>((set, get) => ({
         dopamineIndex: 1.0,
       });
 
-      // Refetch user status after delay to allow indexer/backend to catch up?
-      // Or relies on user refreshing. 
-      const { fetchUserStatus } = get();
-      setTimeout(() => fetchUserStatus(claim.account), 2000);
-
       return { hash, amount: parseFloat(claim.amount) / 1e18 };
     } catch (error) {
       console.error('Claim failed:', error);
@@ -363,45 +274,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         txHash: hash,
       });
 
-      // 3. Refresh User Status (HP, etc) and Balance
-      const address = walletClient.account?.address;
-      if (address) {
-        const { fetchUserStatus, fetchTokenBalance } = get();
-        await Promise.all([
-          fetchUserStatus(address),
-          fetchTokenBalance(address)
-        ]);
-      }
+      // 3. UI Update handled by SWR revalidation
     } catch (error) {
       console.error('Purchase failed:', error);
       throw error;
-    }
-  },
-
-  fetchTokenBalance: async (address: string) => {
-    try {
-      const tokenAddress = import.meta.env.VITE_ALIVE_TOKEN as `0x${string}`;
-      if (!tokenAddress) return;
-
-      const balance = await readContract(config, {
-        address: tokenAddress,
-        abi: erc20Abi,
-        functionName: 'balanceOf',
-        args: [address as `0x${string}`],
-      });
-
-      set({ tokenBalance: formatEther(balance) });
-    } catch (error) {
-      console.error('Failed to fetch token balance:', error);
-    }
-  },
-
-  fetchGlobalStats: async () => {
-    try {
-      const response = await api.get<{ data: DashboardSummaryResponse }>('/dashboard/summary');
-      set({ globalStats: response.data.data });
-    } catch (error) {
-      console.error('Failed to fetch global stats:', error);
     }
   },
 }));

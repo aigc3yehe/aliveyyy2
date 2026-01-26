@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 import { ArrowLeft, TrendingUp } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { useGameStore, LeaderboardEntry } from '@/app/stores/useGameStore';
+import { useUserGameData } from '@/app/hooks/useUserGameData';
 import { fetcher } from '@/services/api';
 import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95cdb7a89980e1a1c18de7.webp';
 import { formatTokenCount } from '@/utils/format';
@@ -20,13 +21,10 @@ interface LeaderboardDisplayItem {
 
 export default function Leaderboard() {
   const { address } = useAccount();
-  const { hp, streaks, survivalMultiplier, language, fetchUserStatus } = useGameStore();
+  const { hp, streaks, survivalMultiplier, language } = useGameStore();
 
-  useEffect(() => {
-    if (address) {
-      fetchUserStatus(address);
-    }
-  }, [address, fetchUserStatus]);
+  // Use new SWR hook for user data syncing
+  useUserGameData(address);
 
   // Use SWR for fetching leaderboard
   const { data: rawLeaderboardData } = useSWR<LeaderboardEntry[]>('/dashboard/leaderboard?sortBy=rewardWeight', fetcher);

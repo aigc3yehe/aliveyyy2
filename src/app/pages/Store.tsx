@@ -5,6 +5,7 @@ import { useWalletClient, useAccount } from 'wagmi';
 import { Link } from 'react-router';
 import { ArrowLeft, CircleHelp } from 'lucide-react';
 import { useGameStore, ShopItem } from '@/app/stores/useGameStore';
+import { useUserGameData } from '@/app/hooks/useUserGameData';
 import { api, fetcher } from '@/services/api';
 import { toast } from 'sonner';
 import {
@@ -22,7 +23,7 @@ import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95c
 import { formatTokenCount } from '@/utils/format';
 
 export default function Store() {
-  const { tokenBalance, buyItem, fetchTokenBalance, fetchUserStatus, language, userItems } = useGameStore();
+  const { tokenBalance, buyItem, language, userItems } = useGameStore();
   const { data: walletClient } = useWalletClient();
   const { address } = useAccount();
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
@@ -35,6 +36,9 @@ export default function Store() {
   const [isManualClaiming, setIsManualClaiming] = useState(false);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
 
+  // Use new SWR hook for user data syncing
+  const { mutateTokenBalance, mutateUserStatus } = useUserGameData(address);
+
   // Use SWR for fetching items
   const { data: items = [] } = useSWR<ShopItem[]>('/items', fetcher);
 
@@ -46,12 +50,7 @@ export default function Store() {
     });
   };
 
-  useEffect(() => {
-    if (address) {
-      fetchTokenBalance(address);
-      fetchUserStatus(address);
-    }
-  }, [fetchTokenBalance, fetchUserStatus, address]);
+  // Removed useEffect for fetchTokenBalance and fetchUserStatus as hook handles it
 
   const handlePurchase = async () => {
     if (!selectedItem || !walletClient) return;
@@ -98,10 +97,10 @@ export default function Store() {
 
       // Refresh data
       if (address) {
-        fetchTokenBalance(address);
-        // Refresh user status logic is mainly in useGameStore but we can trigger a generic update or just assume success toast is enough
-        const { fetchUserStatus } = useGameStore.getState();
-        await fetchUserStatus(address);
+        await Promise.all([
+          mutateTokenBalance(),
+          mutateUserStatus()
+        ]);
       }
 
       toast.success(language === 'en' ? 'Claim Successful!' : '取回成功！', {
