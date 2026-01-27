@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import { api, fetcher } from '@/services/api';
 import { DashboardSummaryResponse } from '@/app/stores/useGameStore';
 import { formatTokenCount } from '@/utils/format';
+import { useTranslation } from 'react-i18next';
 
 interface UnconnectedScreenProps {
   language?: 'en' | 'cn';
@@ -12,6 +13,7 @@ interface UnconnectedScreenProps {
 }
 
 export function UnconnectedScreen({ language = 'en', onLogin }: UnconnectedScreenProps) {
+  const { t } = useTranslation();
   const { data: globalStats } = useSWR<DashboardSummaryResponse>('/dashboard/summary', fetcher, {
     refreshInterval: 30000
   });
@@ -126,7 +128,7 @@ export function UnconnectedScreen({ language = 'en', onLogin }: UnconnectedScree
                 repeat: Infinity,
               }}
             >
-              {language === 'en' ? 'READY TO CONNECT' : '准备连接'}
+              {t('unconnected.readyToConnect')}
             </motion.h2>
           </motion.div>
 
@@ -136,8 +138,8 @@ export function UnconnectedScreen({ language = 'en', onLogin }: UnconnectedScree
             <div className="text-center space-y-2">
               <p className="text-[#00ff41] font-mono text-base md:text-lg leading-relaxed">
                 {language === 'en'
-                  ? 'Start protocol to get $活着呢'
-                  : '启动协议开始获取$活着呢'}
+                  ? t('unconnected.startProtocol')
+                  : t('unconnected.startProtocol')}
               </p>
             </div>
 
@@ -226,7 +228,7 @@ export function UnconnectedScreen({ language = 'en', onLogin }: UnconnectedScree
                               >
                                 🔓
                               </motion.div>
-                              CONNECT WALLET
+                              {t('unconnected.connectWallet')}
                             </span>
                           </motion.button>
                         );
@@ -241,7 +243,7 @@ export function UnconnectedScreen({ language = 'en', onLogin }: UnconnectedScree
             {/* 全网数据展示 */}
             <div className="border-t-2 border-gray-800 pt-6 space-y-3">
               <p className="text-gray-500 font-mono text-xs text-center mb-4">
-                {language === 'en' ? '> GLOBAL_STATS_REALTIME' : '> 全网实时数据'}
+                {t('unconnected.globalStatsRealtime')}
               </p>
 
               <div className="grid grid-cols-1 gap-3">
@@ -257,7 +259,7 @@ export function UnconnectedScreen({ language = 'en', onLogin }: UnconnectedScree
                   }}
                 >
                   <span className="text-gray-400 font-mono text-xs md:text-sm">
-                    {language === 'en' ? '🟢 Alive Players' : '🟢 当前存活玩家'}
+                    {t('unconnected.alivePlayers')}
                   </span>
                   <motion.span
                     className="text-green-400 font-mono text-lg md:text-xl font-bold"
@@ -272,7 +274,7 @@ export function UnconnectedScreen({ language = 'en', onLogin }: UnconnectedScree
                 {/* 今日奖池 */}
                 <div className="bg-gray-900/50 border border-yellow-500/30 p-3 flex items-center justify-between">
                   <span className="text-gray-400 font-mono text-xs md:text-sm">
-                    {language === 'en' ? '💰 Today\'s Prize Pool' : '💰 今日奖池'}
+                    {t('unconnected.todaysPrizePool')}
                   </span>
                   <span className="text-yellow-400 font-mono text-lg md:text-xl font-bold">
                     {formatTokenCount(stats.todayPool)}
@@ -291,7 +293,7 @@ export function UnconnectedScreen({ language = 'en', onLogin }: UnconnectedScree
                   }}
                 >
                   <span className="text-gray-400 font-mono text-xs md:text-sm">
-                    {language === 'en' ? '☠️ Today\'s Lost Contact' : '☠️ 今日失联'}
+                    {t('unconnected.todaysLostContact')}
                   </span>
                   <motion.span
                     className="text-red-400 font-mono text-lg md:text-xl font-bold"
@@ -314,7 +316,7 @@ export function UnconnectedScreen({ language = 'en', onLogin }: UnconnectedScree
               <p className="text-gray-600 font-mono text-xs text-center leading-relaxed">
                 {language === 'en'
                   ? '// Lives are lost every minute'
-                  : '// 每分钟都有人在死亡边缘'}
+                  : t('unconnected.livesLost')}
               </p>
             </div>
           </div>

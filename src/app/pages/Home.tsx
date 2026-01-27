@@ -44,6 +44,7 @@ import { SoundManager } from '@/app/components/SoundManager';
 import { useSound } from '@/app/hooks/useSound';
 import { Volume2, Volume1, VolumeX, LogOut, Lock, HelpCircle, AlertTriangle } from 'lucide-react';
 import { InfoModal } from '@/app/components/InfoModal';
+import { useTranslation } from 'react-i18next';
 
 import soundLogin from '@/assets/login.mp3';
 import soundHeart01 from '@/assets/heart01.mp3';
@@ -100,6 +101,10 @@ export default function Home() {
 
   // Use Authenticated state for game access instead of just wallet connection
   const hasAccess = isConnected && isAuthenticated;
+
+  const { t, i18n } = useTranslation();
+  // Derived language for compatibility if needed, or just use i18n.language
+  // We keep using store's setLanguage to trigger the sync which we added back to store
 
   const { hp, maxHp, isAlive, streaks, survivalMultiplier, dopamineIndex, audioState, language, checkIn, reconnect, cycleAudioState, setLanguage, claimable, userEmissionRate, userItems, userNonce } = useGameStore();
   const { config: decorationConfig, isLoading: isDecorationLoading, layerOverrides, handleLayerClick, setLayerOverride, clearLayerOverride } = useDecorationStore();
@@ -314,19 +319,19 @@ export default function Home() {
       await checkIn();
 
       const isHealing = hp < maxHp;
-      const successTitle = language === 'en' ? 'Check-in successful!' : '签到成功！';
-      const healingMsg = language === 'en' ? 'HP +1' : 'HP +1';
-      const maxHpMsg = language === 'en' ? 'HP Full! Tokens Earned' : 'HP已满！获得Token奖励';
+      const successTitle = t('home.checkin.success');
+      const healingMsg = t('home.checkin.hpPlus');
+      const maxHpMsg = t('home.checkin.hpFull');
 
       toast.success(isHealing ? `${successTitle} ${healingMsg}` : maxHpMsg, {
-        description: `${language === 'en' ? 'Current HP' : '当前HP'}: ${isHealing ? Math.min(maxHp, hp + 1) : hp}/${maxHp}`,
+        description: `${t('home.checkin.currentHp')}: ${isHealing ? Math.min(maxHp, hp + 1) : hp}/${maxHp}`,
       });
 
       // Refresh global stats too if checkin affects summary (unlikely but good practice)
       // fetchGlobalStats(); 
     } catch (error) {
-      toast.error(language === 'en' ? 'Check-in failed' : '签到失败', {
-        description: language === 'en' ? 'Please try again later' : '请稍后重试'
+      toast.error(t('home.checkin.failed'), {
+        description: t('home.checkin.retry')
       });
     }
   };
@@ -377,7 +382,7 @@ export default function Home() {
         >
           <AlertTriangle className="w-4 h-4" />
           <span className="font-bold tracking-wide text-xs md:text-sm">
-            {language === 'en' ? 'Wrong Network. Click to switch to BSC.' : '网络错误，点击切换到 BSC 网络'}
+            {t('home.wrongNetwork')}
           </span>
         </div>
       )}
@@ -415,12 +420,12 @@ export default function Home() {
                   ease: "linear"
                 }}
               >
-                {language === 'en' ? 'CONNECTION LOST' : '信号丢失'}
+                {t('home.connectionLost')}
               </motion.p>
 
               <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-8 border border-red-500/30 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
                 <p className="text-white text-xl font-bold mb-6">
-                  {language === 'en' ? 'Vital Signs Lost' : '检测到生命体征消失'}
+                  {t('home.vitalSignsLost')}
                 </p>
 
                 {/* Revive Options */}
@@ -435,10 +440,11 @@ export default function Home() {
                           try {
                             const { reconnect } = useGameStore.getState();
                             await reconnect('defibrillator');
-                            toast.success(language === 'en' ? 'Revived with Defibrillator!' : '使用起搏器复活成功！');
+                            await reconnect('defibrillator');
+                            toast.success(t('home.reviveDefibSuccess'));
                             setIsLostContactDismissed(true);
                           } catch (e) {
-                            toast.error(language === 'en' ? 'Failed to revive' : '复活失败');
+                            toast.error(t('home.reviveFailed'));
                           }
                         }}
                         disabled={!hasDefibItem}
@@ -449,14 +455,14 @@ export default function Home() {
                         `}
                       >
                         <span className="text-lg">
-                          {language === 'en' ? 'USE DEFIBRILLATOR' : '使用心脏起搏器'}
+                          {t('home.useDefib')}
                         </span>
                         <span className="text-xs opacity-80 font-normal">
-                          {language === 'en' ? 'Preserve Streak & Rewards' : '保留连胜和未领奖励'}
+                          {t('home.defibDesc')}
                         </span>
                         {!hasDefibItem && (
                           <span className="text-[10px] text-red-400 mt-1 uppercase tracking-wider">
-                            {language === 'en' ? '(Out of Stock)' : '(库存不足)'}
+                            {t('home.outOfStock')}
                           </span>
                         )}
                       </button>
@@ -469,18 +475,18 @@ export default function Home() {
                       try {
                         const { reconnect } = useGameStore.getState();
                         await reconnect('standard');
-                        toast.success(language === 'en' ? 'Revived! Streak reset.' : '复活成功！连胜已重置。');
+                        toast.success(t('home.reviveStandardSuccess'));
                         setIsLostContactDismissed(true);
                       } catch (e) {
-                        toast.error(language === 'en' ? 'Failed to revive' : '复活失败');
+                        toast.error(t('home.reviveFailed'));
                       }
                     }}
                     className="w-full bg-stone-800 hover:bg-stone-700 text-white py-4 rounded-xl font-bold tracking-wide transition-colors border border-stone-600"
                   >
                     <div className="flex flex-col items-center">
-                      <span>{language === 'en' ? 'STANDARD REVIVE' : '普通复活'}</span>
+                      <span>{t('home.standardRevive')}</span>
                       <span className="text-xs text-stone-400 font-normal mt-1">
-                        {language === 'en' ? 'Reset Streak & Unclaimed' : '重置连胜和未领奖励'}
+                        {t('home.standardReviveDesc')}
                       </span>
                     </div>
                   </button>
@@ -617,7 +623,7 @@ export default function Home() {
                 <div className="absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center">
                   <div className="w-16 h-16 border-4 border-[#00ff41]/30 border-t-[#00ff41] rounded-full animate-spin mb-4" />
                   <p className="text-[#00ff41] font-mono text-xl animate-pulse">
-                    {language === 'en' ? 'Authenticating...' : '正在验证身份...'}
+                    {t('home.authenticating')}
                   </p>
                 </div>
               )}
@@ -723,7 +729,7 @@ export default function Home() {
                         whileTap={{ scale: 0.95 }}
                       >
                         <span className="text-[#00ff41]/70 group-hover:text-[#00ff41] font-mono text-xs font-bold">
-                          {language === 'en' ? 'EN' : 'CN'}
+                          {i18n.language === 'en' ? 'EN' : 'CN'}
                         </span>
                       </motion.button>
 
@@ -773,9 +779,7 @@ export default function Home() {
                       <motion.button
                         onClick={() => {
                           const rate = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(dailyRate);
-                          const text = language === 'en'
-                            ? `My current mining rate is ${rate} $活着呢/day in 生存证明! Can you survive longer than me? @yeahhuozhene #生存证明 #Web3`
-                            : `我在 生存证明 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@yeahhuozhene #生存证明 #Web3`;
+                          const text = t('home.miningRateShare', { rate });
                           window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
                         }}
                         className="w-[104px] h-auto rounded-sm overflow-hidden shadow-lg border border-black"
@@ -802,9 +806,9 @@ export default function Home() {
             <div className="absolute -top-[50px] left-0 right-0 flex flex-col items-center gap-1 z-30">
               <div className="flex items-center justify-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-[#00ff41]/20 shadow-[0_0_10px_rgba(0,255,65,0.1)]">
                 <p className="text-[#00ff41]/90 font-mono text-[11px] md:text-xs text-center whitespace-nowrap">
-                  {language === 'en' ? 'Current mining rate' : '当前挖矿速率'}
+                  {t('home.currentMiningRate')}
                   <span className="text-[#00ff41] font-bold ml-1.5">
-                    +{new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(dailyRate)} {language === 'en' ? '$活着呢/day' : '$活着呢/天'}
+                    +{new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(dailyRate)} {t('home.tokenPerDay')}
                   </span>
                 </p>
                 <div className="w-[1px] h-3 bg-[#00ff41]/30 mx-1"></div>
@@ -812,14 +816,12 @@ export default function Home() {
                   onClick={(e) => {
                     e.stopPropagation();
                     const rate = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(dailyRate);
-                    const text = language === 'en'
-                      ? `My current mining rate is ${rate} $活着呢/day in 生存证明! Can you survive longer than me? @yeahhuozhene #生存证明 #Web3`
-                      : `我在 生存证明 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@yeahhuozhene #生存证明 #Web3`;
+                    const text = t('home.miningRateShare', { rate });
                     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
                   }}
                   className="text-[#00ff41] hover:text-white underline font-mono text-[11px] md:text-xs transition-colors flex items-center gap-1"
                 >
-                  {language === 'en' ? 'Tell your friends!' : '告诉你的朋友！'}
+                  {t('home.tellFriends')}
                 </button>
               </div>
             </div>

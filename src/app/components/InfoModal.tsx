@@ -8,94 +8,81 @@ interface InfoModalProps {
   onClose: () => void;
 }
 
+import { useTranslation } from 'react-i18next';
+
 export function InfoModal({ isOpen, onClose }: InfoModalProps) {
   const { language } = useGameStore();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'doctrine' | 'rules'>('doctrine');
 
   const content = {
     doctrine: {
-      title: language === 'en' ? 'DOCTRINE' : '学说',
+      title: t('info.doctrine.title'),
       body: (
         <div className="space-y-6 font-mono text-sm leading-relaxed text-gray-300">
           <h3 className="text-[#00ff41] text-lg font-bold mb-4">
-            {language === 'en' ? '$活着呢 — EXISTENCE IS VALUE' : '$活着呢 — 存在即价值'}
+            {t('info.doctrine.heading')}
           </h3>
           <p>
-            {language === 'en' 
-              ? 'Your existence every day is forging value.' 
-              : '你每一天的存在，都在铸造价值。'}
+            {t('info.doctrine.p1')}
           </p>
           <p>
-            {language === 'en'
-              ? 'Every heartbeat is a confirmation of life.'
-              : '每次心跳，都是对生命的确认。'}
+            {t('info.doctrine.p2')}
           </p>
           <p>
-            {language === 'en'
-              ? 'The longer the streak, the higher the dopamine, the richer the harvest.'
-              : '连续存活天数越多，多巴胺越高，收获越丰。'}
+            {t('info.doctrine.p3')}
           </p>
         </div>
       )
     },
     rules: {
-      title: language === 'en' ? 'RULES' : '规则',
+      title: t('info.rules.title'),
       body: (
         <div className="space-y-6 font-mono text-sm">
-           <h3 className="text-[#00ff41] text-lg font-bold mb-4">
-            {language === 'en' ? 'SURVIVAL LAWS' : '生存法则'}
+          <h3 className="text-[#00ff41] text-lg font-bold mb-4">
+            {t('info.rules.survivalLaws')}
           </h3>
-          
+
           <div className="border border-[#00ff41]/30 rounded-sm overflow-hidden">
             <div className="grid grid-cols-[100px_1fr] border-b border-[#00ff41]/30">
               <div className="p-3 bg-[#00ff41]/5 text-[#00ff41] font-bold border-r border-[#00ff41]/30">
-                {language === 'en' ? 'HP' : 'HP'}
+                {t('info.rules.hp')}
               </div>
               <div className="p-3 text-gray-300">
-                {language === 'en' 
-                  ? 'Max 48. -1 per hour. Zero = Signal Lost.' 
-                  : '最大48点，每小时-1。归零=信号丢失。'}
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-[100px_1fr] border-b border-[#00ff41]/30">
-              <div className="p-3 bg-[#00ff41]/5 text-[#00ff41] font-bold border-r border-[#00ff41]/30">
-                {language === 'en' ? 'Check-in' : '签到'}
-              </div>
-              <div className="p-3 text-gray-300">
-                {language === 'en'
-                  ? 'Recover 1 HP. Increases survival streak bonus.'
-                  : '恢复1点HP，增加连续存活天数加成。'}
+                {t('info.rules.hpDesc')}
               </div>
             </div>
 
             <div className="grid grid-cols-[100px_1fr] border-b border-[#00ff41]/30">
               <div className="p-3 bg-[#00ff41]/5 text-[#00ff41] font-bold border-r border-[#00ff41]/30">
-                {language === 'en' ? 'Dopamine' : '多巴胺指数'}
+                {t('info.rules.checkin')}
               </div>
               <div className="p-3 text-gray-300">
-                {language === 'en'
-                  ? 'Grows by not claiming $活着呢 for consecutive days.'
-                  : '将 $活着呢 留在待领取箱内则会增长多巴胺系数。'}
+                {t('info.rules.checkinDesc')}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[100px_1fr] border-b border-[#00ff41]/30">
+              <div className="p-3 bg-[#00ff41]/5 text-[#00ff41] font-bold border-r border-[#00ff41]/30">
+                {t('info.rules.dopamine')}
+              </div>
+              <div className="p-3 text-gray-300">
+                {t('info.rules.dopamineDesc')}
               </div>
             </div>
 
             <div className="grid grid-cols-[100px_1fr]">
               <div className="p-3 bg-[#00ff41]/5 text-[#00ff41] font-bold border-r border-[#00ff41]/30">
-                {language === 'en' ? 'Claim' : '领取'}
+                {t('info.rules.claim')}
               </div>
               <div className="p-3 text-gray-300">
-                {language === 'en'
-                  ? 'Transfer pending tokens to balance. Resets Dopamine.'
-                  : '将待领取代币转入余额，多巴胺重置。'}
+                {t('info.rules.claimDesc')}
               </div>
             </div>
           </div>
 
           <div className="p-3 border-l-2 border-yellow-500 bg-yellow-500/5 text-yellow-500/80 text-xs">
-            {language === 'en' 
-              ? 'SURVIVAL TIP: Delay claiming to accumulate higher Dopamine Index.' 
-              : '生存建议：延迟领取，积累更高多巴胺指数。'}
+            {t('info.rules.survivalTip')}
           </div>
         </div>
       )
@@ -126,7 +113,7 @@ export function InfoModal({ isOpen, onClose }: InfoModalProps) {
             {/* Header */}
             <div className="flex justify-between items-center p-4 border-b border-[#00ff41]/30">
               <h2 className="text-[#00ff41] font-mono text-xl font-bold tracking-wider">
-                {'>'} SYSTEM_INFO
+                {'>'} {t('info.systemInfo')}
               </h2>
               <button
                 onClick={onClose}
@@ -139,21 +126,19 @@ export function InfoModal({ isOpen, onClose }: InfoModalProps) {
             {/* Tabs */}
             <div className="flex border-b border-[#00ff41]/30">
               <button
-                className={`flex-1 py-3 font-mono font-bold transition-colors ${
-                  activeTab === 'doctrine' 
-                    ? 'bg-[#00ff41] text-black' 
+                className={`flex-1 py-3 font-mono font-bold transition-colors ${activeTab === 'doctrine'
+                    ? 'bg-[#00ff41] text-black'
                     : 'text-[#00ff41] hover:bg-[#00ff41]/10'
-                }`}
+                  }`}
                 onClick={() => setActiveTab('doctrine')}
               >
                 {content.doctrine.title}
               </button>
               <button
-                className={`flex-1 py-3 font-mono font-bold transition-colors ${
-                  activeTab === 'rules' 
-                    ? 'bg-[#00ff41] text-black' 
+                className={`flex-1 py-3 font-mono font-bold transition-colors ${activeTab === 'rules'
+                    ? 'bg-[#00ff41] text-black'
                     : 'text-[#00ff41] hover:bg-[#00ff41]/10'
-                }`}
+                  }`}
                 onClick={() => setActiveTab('rules')}
               >
                 {content.rules.title}
@@ -175,12 +160,12 @@ export function InfoModal({ isOpen, onClose }: InfoModalProps) {
             {/* Footer */}
             <div className="p-4 border-t border-[#00ff41]/30 text-center">
               <p className="text-gray-600 font-mono text-xs">
-                // {language === 'en' ? 'AS LONG AS YOU SURVIVE, YOU EARN $活着呢' : '只要生存，就能获得$活着呢'}
+                // {t('info.footer')}
               </p>
             </div>
 
-             {/* CRT Scanline Effect */}
-             <div
+            {/* CRT Scanline Effect */}
+            <div
               className="absolute inset-0 pointer-events-none z-[102]"
               style={{
                 background:
