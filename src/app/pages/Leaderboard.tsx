@@ -30,6 +30,23 @@ export default function Leaderboard() {
   const { data: rawLeaderboardData } = useSWR<LeaderboardEntry[]>('/dashboard/leaderboard?sortBy=rewardWeight', fetcher);
 
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardDisplayItem[]>([]);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+
+  // Dummy Invite Data
+  const inviteData = [
+    { address: '0x1A2...3B4', count: 5 },
+    { address: '0x8C9...1D2', count: 3 },
+    { address: '0x4E5...9F0', count: 2 },
+    { address: '0x7B1...2A3', count: 1 },
+    { address: '0x9D0...5C6', count: 1 },
+    { address: '0x2F3...8E1', count: 0 },
+    { address: '0x5A6...4B9', count: 0 },
+    { address: '0x3C4...7D2', count: 0 },
+    { address: '0x1E9...0F5', count: 0 },
+    { address: '0x6B2...3A8', count: 0 },
+    { address: '0x0D5...1C4', count: 0 },
+    { address: '0x8F7...2E9', count: 0 },
+  ];
 
   useEffect(() => {
     if (rawLeaderboardData) {
@@ -135,7 +152,8 @@ export default function Leaderboard() {
                   <div className="text-gray-400 text-xs mb-2">
                     [ {language === 'en' ? 'YOUR_STATUS' : '你的状态'} ]
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  {/* Status Grid - Back to 3 columns */}
+                  <div className="grid grid-cols-3 gap-4 mb-4">
                     <div>
                       <div className="text-gray-500 text-xs mb-1">HP:</div>
                       <motion.div
@@ -176,6 +194,44 @@ export default function Leaderboard() {
                         x{survivalMultiplier.toFixed(2)}
                       </motion.div>
                     </div>
+                  </div>
+
+                  {/* Separated Invite Section */}
+                  <div 
+                    onClick={() => setShowInviteModal(true)}
+                    className="relative cursor-pointer group bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/30 p-3 rounded-lg flex items-center justify-between hover:border-amber-500/60 transition-all duration-300"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
+                        <span className="text-xl">👑</span>
+                      </div>
+                      <div>
+                        <div className="text-amber-500/80 text-[10px] uppercase font-bold tracking-wider mb-0.5">
+                          {language === 'en' ? 'Total Invites' : '累计邀请'}
+                        </div>
+                        <motion.div
+                          className="text-amber-400 text-xl font-bold font-mono leading-none"
+                          initial={{ scale: 1.2, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          12
+                        </motion.div>
+                      </div>
+                    </div>
+                    
+                    {/* Arrow Indicator */}
+                    <div className="text-amber-500/50 group-hover:text-amber-400 group-hover:translate-x-1 transition-all">
+                      <span className="font-mono text-xl">{'>'}</span>
+                    </div>
+
+                    {/* Scanline overlay for this block */}
+                    <div 
+                      className="absolute inset-0 pointer-events-none opacity-5 rounded-lg"
+                      style={{
+                        background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(245, 158, 11, 0.2) 2px, rgba(245, 158, 11, 0.2) 4px)',
+                      }}
+                    />
                   </div>
                 </motion.div>
               </div>
@@ -267,6 +323,66 @@ export default function Leaderboard() {
           {scanlineEffect}
         </motion.div>
       </div>
+
+       {/* Invite Details Modal */}
+       {showInviteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowInviteModal(false)}
+          />
+          <motion.div
+            className="relative w-full max-w-sm bg-black border border-[#00ff41] shadow-[0_0_30px_rgba(0,255,65,0.2)] rounded-lg overflow-hidden flex flex-col max-h-[80vh]"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+          >
+            {/* Header */}
+            <div className="p-4 border-b border-[#00ff41]/30 flex items-center justify-between bg-[#00ff41]/5">
+              <h3 className="text-[#00ff41] font-mono text-lg font-bold">
+                {language === 'en' ? 'INVITATION LOG' : '邀请记录'}
+              </h3>
+              <button 
+                onClick={() => setShowInviteModal(false)}
+                className="text-[#00ff41]/70 hover:text-[#00ff41]"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* List */}
+            <div className="overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-[#00ff41]/20 scrollbar-track-transparent">
+              <div className="grid grid-cols-2 gap-2 px-2 py-2 text-xs text-gray-500 font-mono border-b border-[#00ff41]/10 mb-2">
+                <div>{language === 'en' ? 'USER' : '用户'}</div>
+                <div className="text-right">{language === 'en' ? 'INVITED' : '已邀请'}</div>
+              </div>
+              
+              {inviteData.map((item, i) => (
+                <div key={i} className="grid grid-cols-2 gap-2 px-2 py-3 hover:bg-[#00ff41]/5 border-b border-[#00ff41]/5 last:border-0 font-mono text-sm">
+                  <div className="text-gray-300">{item.address}</div>
+                  <div className="text-right text-[#00ff41]">{item.count}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer */}
+            <div className="p-3 border-t border-[#00ff41]/30 bg-[#00ff41]/5 text-center">
+              <p className="text-[10px] text-[#00ff41]/60 font-mono leading-relaxed px-2">
+                {language === 'en' 
+                  ? 'Each direct invite adds 0.1 Dopamine Index. Indirect invites add 0.01.' 
+                  : '每增加一个被邀请人，多巴胺系数增加0.1，被邀请人的邀请数量将给你增加0.01多巴胺系数'}
+              </p>
+            </div>
+            
+            {/* Scanline */}
+            <div 
+              className="absolute inset-0 pointer-events-none opacity-10"
+              style={{
+                background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 65, 0.1) 2px, rgba(0, 255, 65, 0.1) 4px)',
+              }}
+            />
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

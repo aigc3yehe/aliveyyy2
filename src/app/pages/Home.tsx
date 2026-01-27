@@ -44,6 +44,7 @@ import { SoundManager } from '@/app/components/SoundManager';
 import { useSound } from '@/app/hooks/useSound';
 import { Volume2, Volume1, VolumeX, LogOut, Lock, HelpCircle, AlertTriangle } from 'lucide-react';
 import { InfoModal } from '@/app/components/InfoModal';
+import { ActivationModal } from '@/app/components/ActivationModal';
 
 import soundLogin from '@/assets/login.mp3';
 import soundHeart01 from '@/assets/heart01.mp3';
@@ -368,6 +369,9 @@ export default function Home() {
 
       {/* 桌面端暗色遮罩 */}
       <div className="hidden md:block absolute inset-0 bg-black/60" />
+
+      {/* Activation Modal - Blocks if not activated */}
+      {hasAccess && <ActivationModal />}
 
       {/* Wrong Network Banner */}
       {isWrongNetwork && (
@@ -745,6 +749,7 @@ export default function Home() {
                         )}
                       </motion.button>
 
+
                       {/* 断开连接按钮 */}
                       <motion.button
                         onClick={() => {
@@ -768,6 +773,7 @@ export default function Home() {
                         }}
                         className="w-[104px] h-[104px]"
                       />
+
 
                       {/* Share on X Button */}
                       <motion.button

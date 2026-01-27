@@ -42,7 +42,7 @@ export function AliveTokenDisplay({ aliveBalance, pendingBalance = 0, onClick, c
       />
 
       {/* 代币数值显示 - 在宝箱顶部中央 */}
-      <div className="absolute left-[40%] top-[25%] -translate-x-1/2 -translate-y-1/2 pointer-events-none w-max px-2">
+      <div className="absolute left-[40%] top-[25%] -translate-x-1/2 -translate-y-1/2 pointer-events-none w-max px-2 flex flex-col items-center">
         <motion.p
           className="font-bold text-[#00ff41] text-[20px] text-center leading-none whitespace-nowrap"
           style={{

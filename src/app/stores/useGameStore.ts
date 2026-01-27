@@ -65,6 +65,8 @@ interface GameState {
   userItems: { code: string; quantity: number }[];
   tokenBalance: string;
   userNonce: number;
+  isAccountActivated: boolean; // PROTOTYPE: Check if user has paid activation fee
+
 
   setHp: (hp: number) => void;
   setLastCheckInTime: (time: number) => void;
@@ -83,6 +85,7 @@ interface GameState {
   claimRewards: (walletClient: WalletClient) => Promise<{ hash: string; amount: number }>; // Changed signature to return amount
   buyItem: (item: ShopItem, walletClient: WalletClient) => Promise<void>;
   reconnect: (mode: 'standard' | 'defibrillator') => Promise<void>;
+  activateAccount: () => Promise<void>; // PROTOTYPE: Simulate activation payment
 }
 
 export interface LeaderboardEntry {
@@ -117,6 +120,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   userItems: [],
   tokenBalance: '0',
   userNonce: 0,
+  isAccountActivated: false, // Default to false for prototype demo
+
 
   setHp: (hp) => set({ hp }),
   setLastCheckInTime: (time) => set({ lastCheckInTime: time }),
@@ -302,5 +307,13 @@ export const useGameStore = create<GameState>((set, get) => ({
       console.error('Reconnect failed:', error);
       throw error;
     }
+  },
+
+  activateAccount: async () => {
+    // PROTOTYPE: Simulate a payment transaction delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    set({ isAccountActivated: true });
+    // In real app, this would verify transaction with backend
+
   },
 }));
