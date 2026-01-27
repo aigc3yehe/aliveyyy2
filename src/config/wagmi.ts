@@ -28,9 +28,9 @@ export const config = getDefaultConfig({
             groupName: 'Recommended',
             wallets: [
                 metaMaskWallet,
-                rainbowWallet,
-                walletConnectWallet,
                 baseAccount,
+                okxWallet,
+                binanceWallet,
             ],
         },
         {
@@ -38,12 +38,12 @@ export const config = getDefaultConfig({
             wallets: [
                 trustWallet,
                 tokenPocketWallet,
-                okxWallet,
                 bitgetWallet,
                 imTokenWallet,
                 safeWallet,
-                binanceWallet,
-                bybitWallet
+                bybitWallet,
+                rainbowWallet,
+                walletConnectWallet,
             ],
         },
     ],
