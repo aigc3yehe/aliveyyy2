@@ -156,8 +156,7 @@ export function UnconnectedScreen({ language = 'en' }: UnconnectedScreenProps) {
                   ready &&
                   account &&
                   chain &&
-                  (!authenticationStatus ||
-                    authenticationStatus === 'authenticated');
+                  authenticationStatus === 'authenticated';
 
                 return (
                   <div
