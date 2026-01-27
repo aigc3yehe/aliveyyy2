@@ -3,13 +3,14 @@ import imgAliveBox from '@/assets/a79000fb81e5a0137244a4df80a9088ba12aa034.webp'
 
 interface AliveTokenDisplayProps {
   aliveBalance: number;
+  pendingBalance?: number;
   onClick?: () => void;
   className?: string;
 }
 
 import { formatTokenCount } from '@/utils/format';
 
-export function AliveTokenDisplay({ aliveBalance, onClick, className }: AliveTokenDisplayProps) {
+export function AliveTokenDisplay({ aliveBalance, pendingBalance = 0, onClick, className }: AliveTokenDisplayProps) {
   return (
     <motion.button
       onClick={onClick}
@@ -41,16 +42,19 @@ export function AliveTokenDisplay({ aliveBalance, onClick, className }: AliveTok
       />
 
       {/* 代币数值显示 - 在宝箱顶部中央 */}
-      <div className="absolute left-1/2 top-[25%] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+      <div className="absolute left-[40%] top-[25%] -translate-x-1/2 -translate-y-1/2 pointer-events-none w-max px-2">
         <motion.p
-          className="font-bold text-[#00ff41] text-[20px] text-center leading-none"
+          className="font-bold text-[#00ff41] text-[20px] text-center leading-none whitespace-nowrap"
           style={{
             textShadow: '0px 4px 8px rgba(0,0,0,0.9), 0px 0px 20px rgba(0,255,65,0.6)',
             WebkitTextStroke: '1px rgba(0,0,0,0.6)',
             fontVariantNumeric: 'tabular-nums'
           }}
         >
-          +{formatTokenCount(aliveBalance)}
+          {pendingBalance > 0
+            ? `${formatTokenCount(pendingBalance)} + ${formatTokenCount(aliveBalance)}`
+            : `${formatTokenCount(aliveBalance)}`
+          }
         </motion.p>
       </div>
     </motion.button>

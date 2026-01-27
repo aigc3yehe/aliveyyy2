@@ -1,21 +1,34 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAccount, useDisconnect, useSignMessage } from 'wagmi';
+import { useAccount, useDisconnect, useSignMessage, useSwitchChain } from 'wagmi';
 import { authService } from '../../services/auth.service';
 import { toast } from 'sonner';
 
 export function useAuth() {
-    const { address, isConnected } = useAccount();
+    const { address, isConnected, chainId } = useAccount();
     const { disconnect } = useDisconnect();
     const { signMessageAsync } = useSignMessage();
+    const { switchChain } = useSwitchChain();
     const [token, setToken] = useState<string | null>(localStorage.getItem('access_token'));
     const [isLoggingIn, setIsLoggingIn] = useState(false);
 
     const isAuthenticated = !!token;
 
+    // Check if connected to wrong network (BSC is chainId 56)
+    const isWrongNetwork = isConnected && chainId !== 56;
+
+    const switchNetwork = useCallback(() => {
+        switchChain({ chainId: 56 });
+    }, [switchChain]);
+
     // Login function: flow is Get Nonce -> Sign Message -> Login API
     const login = useCallback(async (): Promise<boolean> => {
         if (!address || !isConnected) return false;
+        if (isWrongNetwork) {
+            toast.error('Please switch to BSC network');
+            switchNetwork();
+            return false;
+        }
 
         try {
             setIsLoggingIn(true);
@@ -46,7 +59,7 @@ export function useAuth() {
         } finally {
             setIsLoggingIn(false);
         }
-    }, [address, isConnected, signMessageAsync]);
+    }, [address, isConnected, signMessageAsync, isWrongNetwork, switchNetwork]);
 
     const logout = useCallback(() => {
         localStorage.removeItem('access_token');
@@ -69,6 +82,8 @@ export function useAuth() {
     return {
         isAuthenticated,
         isLoggingIn,
+        isWrongNetwork,
+        switchNetwork,
         login,
         logout,
         token

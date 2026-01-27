@@ -42,7 +42,7 @@ import { UnconnectedScreen } from '@/app/components/UnconnectedScreen';
 
 import { SoundManager } from '@/app/components/SoundManager';
 import { useSound } from '@/app/hooks/useSound';
-import { Volume2, Volume1, VolumeX, LogOut, Lock, HelpCircle } from 'lucide-react';
+import { Volume2, Volume1, VolumeX, LogOut, Lock, HelpCircle, AlertTriangle } from 'lucide-react';
 import { InfoModal } from '@/app/components/InfoModal';
 
 import soundLogin from '@/assets/login.mp3';
@@ -96,7 +96,7 @@ import { useDecorationData } from '@/app/hooks/useDecorationData';
 export default function Home() {
   const navigate = useNavigate();
   const { isConnected, address: walletAddress } = useAccount();
-  const { isAuthenticated, isLoggingIn, login, logout } = useAuth();
+  const { isAuthenticated, isLoggingIn, login, logout, isWrongNetwork, switchNetwork } = useAuth();
 
   // Use Authenticated state for game access instead of just wallet connection
   const hasAccess = isConnected && isAuthenticated;
@@ -353,7 +353,7 @@ export default function Home() {
   const hpPercentage = (hp / maxHp) * 100;
 
   return (
-    <div className="relative w-full h-[100dvh] overflow-hidden bg-black">
+    <div className="relative w-full h-[100dvh] overflow-hidden bg-black flex flex-col">
       {/* 桌面端无缝贴图背景 - 只在大屏幕显示 */}
       <div
         className="hidden md:block absolute inset-0"
@@ -365,8 +365,22 @@ export default function Home() {
         }}
       />
 
+
       {/* 桌面端暗色遮罩 */}
       <div className="hidden md:block absolute inset-0 bg-black/60" />
+
+      {/* Wrong Network Banner */}
+      {isWrongNetwork && (
+        <div
+          onClick={switchNetwork}
+          className="relative z-[100] bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-lg shrink-0"
+        >
+          <AlertTriangle className="w-4 h-4" />
+          <span className="font-bold tracking-wide text-xs md:text-sm">
+            {language === 'en' ? 'Wrong Network. Click to switch to BSC.' : '网络错误，点击切换到 BSC 网络'}
+          </span>
+        </div>
+      )}
 
       {/* 失联模式全屏滤镜/弹窗 - 仅在未Dismiss时显示 */}
       {/* 失联模式全屏滤镜/弹窗 - 仅在未Dismiss时显示 */}
@@ -398,6 +412,7 @@ export default function Home() {
                 transition={{
                   duration: 1.5,
                   repeat: Infinity,
+                  ease: "linear"
                 }}
               >
                 {language === 'en' ? 'CONNECTION LOST' : '信号丢失'}
@@ -479,7 +494,7 @@ export default function Home() {
       )}
 
       {/* 桌面端：9:16居中容器 | 移动端：全屏 */}
-      <div className="absolute inset-0 md:flex md:items-center md:justify-center md:p-5">
+      <div className="relative flex-1 min-h-0 w-full md:flex md:items-center md:justify-center md:p-5">
         <motion.div
           ref={containerRef}
           className="relative w-full h-full md:w-auto md:h-[calc(100vh-80px)] md:rounded-[24px] md:shadow-2xl overflow-hidden"
@@ -745,7 +760,8 @@ export default function Home() {
 
                     <div className="flex flex-col items-end gap-2">
                       <AliveTokenDisplay
-                        aliveBalance={claimable + (pendingClaim?.amount ? parseFloat(pendingClaim.amount) / 1e18 : 0)}
+                        aliveBalance={claimable}
+                        pendingBalance={pendingClaim?.amount ? parseFloat(pendingClaim.amount) / 1e18 : 0}
                         onClick={() => {
                           playSound(soundToken);
                           setIsClaimModalOpen(true);

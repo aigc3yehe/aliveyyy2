@@ -123,12 +123,15 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                     [ PENDING_REWARDS ]
                   </div>
                   <motion.div
-                    className="text-[#00ff41] font-mono text-4xl font-bold text-center"
+                    className={`text-[#00ff41] font-mono font-bold text-center ${pendingClaimAmount > 0 ? 'text-2xl' : 'text-4xl'}`}
                     initial={{ scale: 1.2, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    {formatTokenCount(totalDisplayAmount)}
+                    {pendingClaimAmount > 0
+                      ? `${formatTokenCount(pendingClaimAmount)} + ${formatTokenCount(claimable)}`
+                      : formatTokenCount(claimable)
+                    }
                   </motion.div>
                   <div className="text-gray-500 font-mono text-sm text-center mt-2">
                     $活着呢
