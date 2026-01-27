@@ -23,6 +23,7 @@ import imgLayerPhoto from '@/assets/photo_compressed.webp';
 import imgLayerHolographic from '@/assets/Holographic display_compressed.webp';
 import imgLayerTotalBg from '@/assets/total_bg_compressed.webp';
 import imgAliveBtn from '@/assets/fd492cf3478c581e2ebbfb59ed8c4aa19c961a66.webp';
+import { InviteShareModal } from '@/app/components/InviteShareModal';
 import imgStoreBtn from '@/assets/c295b3b73b51e093b63ff0a1d6a381dfcbc47839.webp';
 import imgHeartMonitor from '@/assets/9d6d0e35bac475838303aad4de9c9b50d0be0176.webp';
 import imgHeartBtnBg from '@/assets/bd95fee5e21f1697afb011ffa1c5e5756804bfc6.webp';
@@ -121,6 +122,7 @@ export default function Home() {
   const [currentHeartImg, setCurrentHeartImg] = useState(imgHeartBtn);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [showHeartbeatEffect, setShowHeartbeatEffect] = useState(false);
   const [isLostContactDismissed, setIsLostContactDismissed] = useState(false);
   const [floatingTexts, setFloatingTexts] = useState<{ id: number; x: number; y: number }[]>([]);
@@ -817,15 +819,11 @@ export default function Home() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    const rate = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(dailyRate);
-                    const text = language === 'en'
-                      ? `My current mining rate is ${rate} $活着呢/day in 生存证明! Can you survive longer than me? @yeahhuozhene #生存证明 #Web3`
-                      : `我在 生存证明 当前挖矿速率是 ${rate} $活着呢/天！你能活得比我久吗？@yeahhuozhene #生存证明 #Web3`;
-                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+                    setShowInviteModal(true);
                   }}
                   className="text-[#00ff41] hover:text-white underline font-mono text-[11px] md:text-xs transition-colors flex items-center gap-1"
                 >
-                  {language === 'en' ? 'Tell your friends!' : '告诉你的朋友！'}
+                  {language === 'en' ? 'Invite your friends!' : '邀请你的朋友！'}
                 </button>
               </div>
             </div>
@@ -1004,6 +1002,9 @@ export default function Home() {
 
       {/* 信息模态框 */}
       <InfoModal isOpen={isInfoModalOpen} onClose={() => setIsInfoModalOpen(false)} />
+
+      {/* 邀请分享模态框 */}
+      <InviteShareModal isOpen={showInviteModal} onClose={() => setShowInviteModal(false)} />
 
 
 

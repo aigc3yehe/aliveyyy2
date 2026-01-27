@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { useState, useRef } from 'react';
 import { InfoPopup } from './InfoPopup';
+import { InviteShareModal } from '@/app/components/InviteShareModal';
 
 interface StatsIndicatorsProps {
   isAlive: boolean;
@@ -19,6 +20,7 @@ export function StatsIndicators({
 }: StatsIndicatorsProps) {
   const [activePopup, setActivePopup] = useState<string | null>(null);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   // When player is dead, show fixed values
   const displaySurvivalDays = isAlive ? survivalDays : 0;
@@ -61,6 +63,35 @@ export function StatsIndicators({
         ? 'Dopamine Index measures your delayed gratification. Restraint is key to survival.'
         : '多巴胺指数衡量你的延迟满足能力。指数越高，持续获得$活着呢的速率越快。领取$活着呢会导致多巴胺指数重置。',
     },
+  };
+
+  const renderActionButton = () => {
+    if (activePopup === 'dopamine') {
+      return (
+        <>
+          <button
+            onClick={() => {
+              setActivePopup(null);
+              setShowInviteModal(true);
+            }}
+            className="w-full mt-2 bg-gradient-to-r from-amber-500/20 to-amber-600/20 border border-amber-500/50 hover:bg-amber-500/30 text-amber-500 py-2 rounded font-mono text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 group"
+          >
+            <span className="text-lg group-hover:scale-110 transition-transform">👑</span>
+            {language === 'en' ? 'Invite & Earn!' : '邀请并获得多巴胺！'}
+          </button>
+           <p 
+            onClick={() => {
+               setActivePopup(null);
+               setShowInviteModal(true);
+            }}
+            className="text-amber-500/80 font-mono text-[10px] text-center mt-3 font-bold underline decoration-dotted underline-offset-2 cursor-pointer hover:text-amber-400"
+          >
+            {language === 'en' ? '>> Invite friends! Earn extra Dopamine! <<' : '>> 邀请你的朋友加入！获得额外多巴胺！ <<'}
+          </p>
+        </>
+      );
+    }
+    return null;
   };
 
   return (
@@ -189,8 +220,15 @@ export function StatsIndicators({
           title={popupContent[activePopup as keyof typeof popupContent].title}
           description={popupContent[activePopup as keyof typeof popupContent].description}
           position={popupPosition}
+          actionButton={renderActionButton()}
         />
       )}
+
+      {/* Invite Share Modal */}
+      <InviteShareModal 
+        isOpen={showInviteModal} 
+        onClose={() => setShowInviteModal(false)}
+      />
     </>
   );
 }

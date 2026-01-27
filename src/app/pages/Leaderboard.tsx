@@ -10,6 +10,8 @@ import { fetcher } from '@/services/api';
 import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95cdb7a89980e1a1c18de7.webp';
 import { formatTokenCount } from '@/utils/format';
 
+import { InviteShareModal } from '@/app/components/InviteShareModal';
+
 interface LeaderboardDisplayItem {
   rank: number;
   address: string;
@@ -30,23 +32,8 @@ export default function Leaderboard() {
   const { data: rawLeaderboardData } = useSWR<LeaderboardEntry[]>('/dashboard/leaderboard?sortBy=rewardWeight', fetcher);
 
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardDisplayItem[]>([]);
+  // InviteShareModal integration
   const [showInviteModal, setShowInviteModal] = useState(false);
-
-  // Dummy Invite Data
-  const inviteData = [
-    { address: '0x1A2...3B4', count: 5 },
-    { address: '0x8C9...1D2', count: 3 },
-    { address: '0x4E5...9F0', count: 2 },
-    { address: '0x7B1...2A3', count: 1 },
-    { address: '0x9D0...5C6', count: 1 },
-    { address: '0x2F3...8E1', count: 0 },
-    { address: '0x5A6...4B9', count: 0 },
-    { address: '0x3C4...7D2', count: 0 },
-    { address: '0x1E9...0F5', count: 0 },
-    { address: '0x6B2...3A8', count: 0 },
-    { address: '0x0D5...1C4', count: 0 },
-    { address: '0x8F7...2E9', count: 0 },
-  ];
 
   useEffect(() => {
     if (rawLeaderboardData) {
@@ -210,12 +197,14 @@ export default function Leaderboard() {
                           {language === 'en' ? 'Total Invites' : '累计邀请'}
                         </div>
                         <motion.div
-                          className="text-amber-400 text-xl font-bold font-mono leading-none"
-                          initial={{ scale: 1.2, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ duration: 0.2 }}
+                          className="text-amber-400 font-bold font-mono leading-none flex items-center gap-2"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
                         >
-                          12
+                          <span className="text-lg">12</span>
+                          <span className="text-[10px] text-amber-500/60 font-medium">
+                            {language === 'en' ? '(Direct) / 25 (Indirect)' : '(直推) / 25 (间接)'}
+                          </span>
                         </motion.div>
                       </div>
                     </div>
@@ -323,66 +312,12 @@ export default function Leaderboard() {
           {scanlineEffect}
         </motion.div>
       </div>
-
-       {/* Invite Details Modal */}
-       {showInviteModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            onClick={() => setShowInviteModal(false)}
-          />
-          <motion.div
-            className="relative w-full max-w-sm bg-black border border-[#00ff41] shadow-[0_0_30px_rgba(0,255,65,0.2)] rounded-lg overflow-hidden flex flex-col max-h-[80vh]"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-          >
-            {/* Header */}
-            <div className="p-4 border-b border-[#00ff41]/30 flex items-center justify-between bg-[#00ff41]/5">
-              <h3 className="text-[#00ff41] font-mono text-lg font-bold">
-                {language === 'en' ? 'INVITATION LOG' : '邀请记录'}
-              </h3>
-              <button 
-                onClick={() => setShowInviteModal(false)}
-                className="text-[#00ff41]/70 hover:text-[#00ff41]"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* List */}
-            <div className="overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-[#00ff41]/20 scrollbar-track-transparent">
-              <div className="grid grid-cols-2 gap-2 px-2 py-2 text-xs text-gray-500 font-mono border-b border-[#00ff41]/10 mb-2">
-                <div>{language === 'en' ? 'USER' : '用户'}</div>
-                <div className="text-right">{language === 'en' ? 'INVITED' : '已邀请'}</div>
-              </div>
-              
-              {inviteData.map((item, i) => (
-                <div key={i} className="grid grid-cols-2 gap-2 px-2 py-3 hover:bg-[#00ff41]/5 border-b border-[#00ff41]/5 last:border-0 font-mono text-sm">
-                  <div className="text-gray-300">{item.address}</div>
-                  <div className="text-right text-[#00ff41]">{item.count}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Footer */}
-            <div className="p-3 border-t border-[#00ff41]/30 bg-[#00ff41]/5 text-center">
-              <p className="text-[10px] text-[#00ff41]/60 font-mono leading-relaxed px-2">
-                {language === 'en' 
-                  ? 'Each direct invite adds 0.1 Dopamine Index. Indirect invites add 0.01.' 
-                  : '每增加一个被邀请人，多巴胺系数增加0.1，被邀请人的邀请数量将给你增加0.01多巴胺系数'}
-              </p>
-            </div>
-            
-            {/* Scanline */}
-            <div 
-              className="absolute inset-0 pointer-events-none opacity-10"
-              style={{
-                background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 65, 0.1) 2px, rgba(0, 255, 65, 0.1) 4px)',
-              }}
-            />
-          </motion.div>
-        </div>
-      )}
+      
+      {/* Invite Share Modal */}
+      <InviteShareModal 
+        isOpen={showInviteModal} 
+        onClose={() => setShowInviteModal(false)} 
+      />
     </div>
   );
 }

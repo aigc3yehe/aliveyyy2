@@ -6,6 +6,8 @@ import { formatTokenCount } from '@/utils/format';
 import { useState } from 'react';
 import { useWalletClient } from 'wagmi';
 
+import { InviteShareModal } from '@/app/components/InviteShareModal';
+
 interface ClaimRecordDto {
   id: string;
   nonce: string;
@@ -22,6 +24,7 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
   const { claimable, dopamineIndex, claimRewards, language } = useGameStore(); // userNonce removed as not used directly here anymore
   const [claimState, setClaimState] = useState<'initial' | 'loading' | 'success'>('initial');
   const [claimedAmount, setClaimedAmount] = useState(0);
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   // pendingClaim passed from parent
   const pendingClaimAmount = pendingClaim?.amount ? parseFloat(pendingClaim.amount) / 1e18 : 0;
@@ -174,6 +177,15 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                   </div>
                 </div>
 
+                {/* 邀请按钮 - 加强引导 */}
+                <button
+                  onClick={() => setShowInviteModal(true)}
+                  className="w-full mt-2 bg-gradient-to-r from-amber-500/20 to-amber-600/20 border border-amber-500/50 hover:bg-amber-500/30 text-amber-500 py-2 rounded font-mono text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 group"
+                >
+                  <span className="text-lg group-hover:scale-110 transition-transform">👑</span>
+                  {language === 'en' ? 'Invite & Earn Dopamine!' : '邀请获得更多多巴胺！'}
+                </button>
+
                 {/* 领取按钮 */}
                 <motion.button
                   onClick={handleClaim}
@@ -209,9 +221,12 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                 )}
 
                 {/* 底部提示 */}
-                <div className="border-t border-[#00ff41]/20 pt-4">
+                <div className="border-t border-[#00ff41]/20 pt-4 cursor-pointer hover:bg-[#00ff41]/5 transition-colors -mx-6 px-6 pb-2" onClick={() => setShowInviteModal(true)}>
                   <p className="text-gray-600 font-mono text-xs text-center mt-1">
                     // {language === 'en' ? 'Higher Dopamine Index means earning $活着呢 faster' : '多巴胺指数越高，越能快速获得 $活着呢'}
+                  </p>
+                   <p className="text-amber-500/80 font-mono text-xs text-center mt-2 font-bold underline decoration-dotted underline-offset-2">
+                    {language === 'en' ? '>> Invite friends! Earn extra Dopamine! <<' : '>> 邀请你的朋友加入！获得额外多巴胺！ <<'}
                   </p>
                 </div>
               </div>
@@ -315,6 +330,12 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
           )}
         </>
       )}
+      
+      {/* Invite Share Modal */}
+      <InviteShareModal 
+        isOpen={showInviteModal} 
+        onClose={() => setShowInviteModal(false)}
+      />
     </AnimatePresence>
   );
 }
