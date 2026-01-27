@@ -612,7 +612,7 @@ export default function Home() {
           {/* Unconnected Overlay */}
           {!hasAccess && (
             <div className="absolute inset-0 z-40">
-              <UnconnectedScreen language={language} />
+              <UnconnectedScreen language={language} onLogin={login} />
               {isLoggingIn && (
                 <div className="absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center">
                   <div className="w-16 h-16 border-4 border-[#00ff41]/30 border-t-[#00ff41] rounded-full animate-spin mb-4" />

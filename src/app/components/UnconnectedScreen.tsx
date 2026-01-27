@@ -8,9 +8,10 @@ import { formatTokenCount } from '@/utils/format';
 
 interface UnconnectedScreenProps {
   language?: 'en' | 'cn';
+  onLogin?: () => void;
 }
 
-export function UnconnectedScreen({ language = 'en' }: UnconnectedScreenProps) {
+export function UnconnectedScreen({ language = 'en', onLogin }: UnconnectedScreenProps) {
   const { data: globalStats } = useSWR<DashboardSummaryResponse>('/dashboard/summary', fetcher, {
     refreshInterval: 30000
   });
@@ -173,7 +174,13 @@ export function UnconnectedScreen({ language = 'en' }: UnconnectedScreenProps) {
                       if (!connected) {
                         return (
                           <motion.button
-                            onClick={openConnectModal}
+                            onClick={() => {
+                              if (account && onLogin) {
+                                onLogin();
+                              } else {
+                                openConnectModal();
+                              }
+                            }}
                             className="w-full bg-gradient-to-br from-[#00ff41] via-[#00d636] to-[#00cc33] border-2 border-[#00ff41] text-black py-4 md:py-5 font-mono text-lg md:text-xl font-bold relative overflow-hidden group shadow-lg"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
