@@ -8,7 +8,6 @@ import { useGameStore, LeaderboardEntry } from '@/app/stores/useGameStore';
 import { useUserGameData } from '@/app/hooks/useUserGameData';
 import { fetcher } from '@/services/api';
 import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95cdb7a89980e1a1c18de7.webp';
-import { formatTokenCount } from '@/utils/format';
 
 import { InviteShareModal } from '@/app/components/InviteShareModal';
 
@@ -16,6 +15,7 @@ interface LeaderboardDisplayItem {
   rank: number;
   address: string;
   hp: number;
+  maxHp: number;
   streaks: number;
   bonus: number;
   avatar: string;
@@ -37,14 +37,31 @@ export default function Leaderboard() {
 
   useEffect(() => {
     if (rawLeaderboardData) {
-      const mappedData = rawLeaderboardData.map((entry, index) => ({
-        rank: index + 1,
-        address: entry.address,
-        hp: entry.hp,
-        streaks: entry.consecutiveCheckinDays,
-        bonus: entry.multiplier,
-        avatar: index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤'
-      }));
+      const now = Date.now();
+      const mappedData = rawLeaderboardData.map((entry, index) => {
+        // Calculate current HP based on decay
+        // elapsedHours = floor((now - lastHpUpdateAt) / 1h)
+        // hpNow = max(0, hp - elapsedHours * hpDecayPerHour)
+
+        let currentHp = entry.hp;
+        if (entry.lastHpUpdateAt) {
+          const lastUpdate = new Date(entry.lastHpUpdateAt).getTime();
+          const elapsedHours = Math.floor((now - lastUpdate) / (1000 * 60 * 60));
+          if (elapsedHours > 0) {
+            currentHp = Math.max(0, entry.hp - (elapsedHours * entry.hpDecayPerHour));
+          }
+        }
+
+        return {
+          rank: index + 1,
+          address: entry.address,
+          hp: currentHp || 0,
+          maxHp: entry.maxHp ?? 48,
+          streaks: entry.consecutiveCheckinDays,
+          bonus: entry.multiplier,
+          avatar: index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤'
+        };
+      });
       setLeaderboardData(mappedData);
     }
   }, [rawLeaderboardData]);
@@ -184,7 +201,7 @@ export default function Leaderboard() {
                   </div>
 
                   {/* Separated Invite Section */}
-                  <div 
+                  <div
                     onClick={() => setShowInviteModal(true)}
                     className="relative cursor-pointer group bg-gradient-to-r from-amber-500/10 to-transparent border border-amber-500/30 p-3 rounded-lg flex items-center justify-between hover:border-amber-500/60 transition-all duration-300"
                   >
@@ -208,14 +225,14 @@ export default function Leaderboard() {
                         </motion.div>
                       </div>
                     </div>
-                    
+
                     {/* Arrow Indicator */}
                     <div className="text-amber-500/50 group-hover:text-amber-400 group-hover:translate-x-1 transition-all">
                       <span className="font-mono text-xl">{'>'}</span>
                     </div>
 
                     {/* Scanline overlay for this block */}
-                    <div 
+                    <div
                       className="absolute inset-0 pointer-events-none opacity-5 rounded-lg"
                       style={{
                         background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(245, 158, 11, 0.2) 2px, rgba(245, 158, 11, 0.2) 4px)',
@@ -267,10 +284,10 @@ export default function Leaderboard() {
                     {/* HP */}
                     <div className="flex items-center justify-center">
                       <span
-                        className={`font-mono text-xs font-bold ${player.hp >= 45 ? 'text-[#00ff41]' : 'text-yellow-500'
+                        className={`font-mono text-xs font-bold ${player.hp >= (player.maxHp * 0.9) ? 'text-[#00ff41]' : 'text-yellow-500'
                           }`}
                       >
-                        {player.hp}/48
+                        {player.hp}/{player.maxHp}
                       </span>
                     </div>
 
@@ -312,11 +329,11 @@ export default function Leaderboard() {
           {scanlineEffect}
         </motion.div>
       </div>
-      
+
       {/* Invite Share Modal */}
-      <InviteShareModal 
-        isOpen={showInviteModal} 
-        onClose={() => setShowInviteModal(false)} 
+      <InviteShareModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
       />
     </div>
   );

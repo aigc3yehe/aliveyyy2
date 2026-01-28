@@ -91,6 +91,9 @@ interface GameState {
 export interface LeaderboardEntry {
   address: string;
   hp: number;
+  maxHp: number; // Added
+  hpDecayPerHour: number; // Added
+  lastHpUpdateAt: string | Date; // Added
   consecutiveCheckinDays: number;
   unclaimedDays: number;
   multiplier: number;
