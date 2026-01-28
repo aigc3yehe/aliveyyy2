@@ -119,5 +119,32 @@
             "survivalTip": "生存建议：延迟领取，积累更高多巴胺指数。"
         },
         "footer": "只要生存，就能获得$活着呢"
+    },
+    "activationModal": {
+        "success": "账户激活成功！",
+        "welcome": "欢迎来到生存证明。",
+        "failed": "激活失败",
+        "title": "需要激活",
+        "disconnect": "断开钱包",
+        "description": "为了开始您的生存之旅，需要支付一次性激活费用。",
+        "feeTitle": "激活费用",
+        "feeDistribution": "费用分配",
+        "directInviter": "直接邀请人",
+        "indirectInviter": "间接邀请人",
+        "pool": "$活着呢 流动性池",
+        "estDaily": "预估每日矿池产出",
+        "processing": "处理中...",
+        "payAndActivate": "支付并激活",
+        "oneTime": "仅有这一次收费",
+        "referrer": "你的推荐人是 {{code}}"
+    },
+    "inviteShareModal": {
+        "copied": "链接已复制！",
+        "title": "邀请赚取奖励",
+        "directInvites": "成功邀请",
+        "indirectInvites": "间接邀请",
+        "promo": "直接邀请朋友赚取 33% 的激活BNB费用，间接邀请朋友赚取 13% 的激活BNB费用。",
+        "copy": "复制",
+        "viewDetails": "查看邀请信息"
     }
 }

@@ -119,5 +119,32 @@
             "survivalTip": "SURVIVAL TIP: Delay claiming to accumulate higher Dopamine Index."
         },
         "footer": "AS LONG AS YOU SURVIVE, YOU EARN $活着呢"
+    },
+    "activationModal": {
+        "success": "Account Activated!",
+        "welcome": "Welcome to Alive.",
+        "failed": "Activation Failed",
+        "title": "ACTIVATION REQUIRED",
+        "disconnect": "Disconnect Wallet",
+        "description": "To initiate your survival journey, a one-time activation fee is required.",
+        "feeTitle": "Activation Fee",
+        "feeDistribution": "FEE DISTRIBUTION",
+        "directInviter": "Direct Inviter",
+        "indirectInviter": "Indirect Inviter",
+        "pool": "$活着呢 Liquidity Pool",
+        "estDaily": "Est. Daily Pool Output",
+        "processing": "Processing...",
+        "payAndActivate": "Pay & Activate",
+        "oneTime": "One-time payment only",
+        "referrer": "Your referrer is {{code}}"
+    },
+    "inviteShareModal": {
+        "copied": "Link Copied!",
+        "title": "INVITE & EARN",
+        "directInvites": "Direct Invites",
+        "indirectInvites": "Indirect Invites",
+        "promo": "Directly invite friends to earn 33% of the activation BNB fee, and indirectly invite friends to earn 13%.",
+        "copy": "COPY",
+        "viewDetails": "View Invite Details"
     }
 }

@@ -6,6 +6,7 @@ import { useState, memo } from 'react';
 import { LogOut, ShoppingBag, CheckCircle } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 import { formatTokenCount } from '@/utils/format';
+import { useTranslation } from 'react-i18next';
 
 export const ActivationModal = memo(function ActivationModal() {
   const isAccountActivated = useGameStore(state => state.isAccountActivated);
@@ -13,6 +14,7 @@ export const ActivationModal = memo(function ActivationModal() {
   const language = useGameStore(state => state.language);
   const globalStats = useGameStore(state => state.globalStats);
 
+  const { t } = useTranslation();
   const { logout } = useAuth();
   const [isActivating, setIsActivating] = useState(false);
   const [searchParams] = useSearchParams();
@@ -28,12 +30,12 @@ export const ActivationModal = memo(function ActivationModal() {
     setIsActivating(true);
     try {
       await activateAccount();
-      toast.success(language === 'en' ? 'Account Activated!' : '账户激活成功！', {
-        description: language === 'en' ? 'Welcome to Alive.' : '欢迎来到生存证明。'
+      toast.success(t('activationModal.success'), {
+        description: t('activationModal.welcome')
       });
     } catch (error) {
       console.error('Activation failed:', error);
-      toast.error(language === 'en' ? 'Activation Failed' : '激活失败');
+      toast.error(t('activationModal.failed'));
     } finally {
       setIsActivating(false);
     }
@@ -72,12 +74,12 @@ export const ActivationModal = memo(function ActivationModal() {
           <div className="bg-amber-500/10 p-4 border-b border-amber-500/30 flex items-center justify-between">
             <h2 className="text-amber-500 font-mono text-lg font-bold tracking-wider flex items-center gap-2">
               <ShoppingBag className="w-5 h-5" />
-              {language === 'en' ? 'ACTIVATION REQUIRED' : '需要激活'}
+              {t('activationModal.title')}
             </h2>
             <button
               onClick={logout}
               className="text-amber-500/70 hover:text-amber-500 transition-colors"
-              title={language === 'en' ? "Disconnect Wallet" : "断开钱包"}
+              title={t('activationModal.disconnect')}
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -87,16 +89,13 @@ export const ActivationModal = memo(function ActivationModal() {
           <div className="p-6 space-y-6">
             <div className="text-center">
               <p className="text-gray-400 font-mono text-sm leading-relaxed mb-6">
-                {language === 'en'
-                  ? 'To initiate your survival journey, a one-time activation fee is required.'
-                  : '为了开始您的生存之旅，需要支付一次性激活费用。'
-                }
+                {t('activationModal.description')}
               </p>
 
               {/* Fee Display */}
               <div className="bg-amber-900/10 border border-amber-500/30 p-4 rounded-lg mb-4">
                 <p className="text-amber-400 font-mono text-sm mb-1 uppercase tracking-widest opacity-80">
-                  {language === 'en' ? 'Activation Fee' : '激活费用'}
+                  {t('activationModal.feeTitle')}
                 </p>
                 <div className="text-3xl font-bold text-white font-mono" style={{ textShadow: '0 0 10px rgba(245, 158, 11, 0.5)' }}>
                   {feeAmount} BNB
@@ -104,17 +103,17 @@ export const ActivationModal = memo(function ActivationModal() {
 
                 {/* Fee Distribution */}
                 <div className="mt-3 pt-3 border-t border-amber-500/20 text-[10px] text-amber-200/70 font-mono space-y-1">
-                  <p className="opacity-50 mb-1">{language === 'en' ? 'FEE DISTRIBUTION' : '费用分配'}</p>
+                  <p className="opacity-50 mb-1">{t('activationModal.feeDistribution')}</p>
                   <div className="flex justify-between items-center">
-                    <span>{language === 'en' ? 'Direct Inviter' : '直接邀请人'}</span>
+                    <span>{t('activationModal.directInviter')}</span>
                     <span className="text-amber-400 font-bold">33%</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>{language === 'en' ? 'Indirect Inviter' : '间接邀请人'}</span>
+                    <span>{t('activationModal.indirectInviter')}</span>
                     <span className="text-amber-400 font-bold">13%</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>{language === 'en' ? '$Alive Liquidity Pool' : '$活着呢 流动性池'}</span>
+                    <span>{t('activationModal.pool')}</span>
                     <span className="text-[#00ff41] font-bold">50%</span>
                   </div>
                 </div>
@@ -123,7 +122,7 @@ export const ActivationModal = memo(function ActivationModal() {
               {/* Daily Pool Estimate */}
               <div className="bg-[#00ff41]/5 border border-[#00ff41]/20 p-4 rounded-lg">
                 <p className="text-[#00ff41] font-mono text-xs mb-1 uppercase tracking-widest opacity-80">
-                  {language === 'en' ? 'Est. Daily Pool Output' : '预估每日矿池产出'}
+                  {t('activationModal.estDaily')}
                 </p>
                 <div className="text-2xl font-bold text-[#00ff41] font-mono" style={{ textShadow: '0 0 10px rgba(0, 255, 65, 0.3)' }}>
                   {dailyPoolFormatted} $活着呢
@@ -143,11 +142,11 @@ export const ActivationModal = memo(function ActivationModal() {
               `}
             >
               {isActivating
-                ? (language === 'en' ? 'Processing...' : '处理中...')
+                ? t('activationModal.processing')
                 : (
                   <>
                     <CheckCircle className="w-5 h-5" />
-                    {language === 'en' ? 'Pay & Activate' : '支付并激活'}
+                    {t('activationModal.payAndActivate')}
                   </>
                 )
               }
@@ -155,19 +154,13 @@ export const ActivationModal = memo(function ActivationModal() {
 
             <div className="space-y-2">
               <p className="text-center text-gray-600 text-xs font-mono">
-                {language === 'en'
-                  ? 'One-time payment only'
-                  : '仅有这一次收费'
-                }
+                {t('activationModal.oneTime')}
               </p>
 
               {/* Referrer Info */}
               {inviteCode && (
                 <p className="text-center text-gray-500 text-[10px] font-mono border-t border-gray-800 pt-2 mt-2">
-                  {language === 'en'
-                    ? `Your referrer is ${inviteCode}`
-                    : `你的推荐人是 ${inviteCode}`
-                  }
+                  {t('activationModal.referrer', { code: inviteCode })}
                 </p>
               )}
             </div>

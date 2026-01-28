@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { InviteListModal } from './InviteListModal';
 import { useAccount } from 'wagmi';
+import { useTranslation } from 'react-i18next';
 
 interface InviteShareModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface InviteShareModalProps {
 export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
   const { language } = useGameStore();
   const { address } = useAccount();
+  const { t } = useTranslation();
   const [showList, setShowList] = useState(false);
 
   // Mock Stats
@@ -28,7 +30,7 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(inviteLink);
-    toast.success(language === 'en' ? 'Link Copied!' : '链接已复制！');
+    toast.success(t('inviteShareModal.copied'));
   };
 
   return (
@@ -51,7 +53,7 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
                 <div className="bg-amber-500/10 p-5 border-b border-amber-500/30 flex items-center justify-between">
                   <h2 className="text-amber-500 font-mono text-xl font-bold tracking-wider flex items-center gap-2">
                     <span className="text-2xl">👑</span>
-                    {language === 'en' ? 'INVITE & EARN' : '邀请赚取奖励'}
+                    {t('inviteShareModal.title')}
                   </h2>
                   <button
                     onClick={onClose}
@@ -66,13 +68,13 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-amber-900/10 border border-amber-500/30 p-3 rounded-lg text-center">
                       <p className="text-amber-500/70 text-[10px] uppercase font-bold tracking-wider mb-1">
-                        {language === 'en' ? 'Direct Invites' : '成功邀请'}
+                        {t('inviteShareModal.directInvites')}
                       </p>
                       <p className="text-2xl font-bold text-white font-mono">{directInvites}</p>
                     </div>
                     <div className="bg-amber-900/10 border border-amber-500/30 p-3 rounded-lg text-center">
                       <p className="text-amber-500/70 text-[10px] uppercase font-bold tracking-wider mb-1">
-                        {language === 'en' ? 'Indirect Invites' : '间接邀请'}
+                        {t('inviteShareModal.indirectInvites')}
                       </p>
                       <p className="text-2xl font-bold text-white font-mono">{indirectInvites}</p>
                     </div>
@@ -81,9 +83,7 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
                   {/* Promo Text */}
                   <div className="text-center space-y-2">
                     <p className="text-amber-100 font-mono text-sm leading-relaxed">
-                      {language === 'en'
-                        ? 'Directly invite friends to earn 33% of the activation BNB fee, and indirectly invite friends to earn 13%.'
-                        : '直接邀请朋友赚取 33% 的激活BNB费用，间接邀请朋友赚取 13% 的激活BNB费用。'}
+                      {t('inviteShareModal.promo')}
                     </p>
                   </div>
 
@@ -97,7 +97,7 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
                       className="bg-amber-500 hover:bg-amber-400 text-black px-4 py-2 rounded font-bold text-sm transition-colors flex items-center gap-1"
                     >
                       <Copy className="w-3.5 h-3.5" />
-                      {language === 'en' ? 'COPY' : '复制'}
+                      {t('inviteShareModal.copy')}
                     </button>
                   </div>
 
@@ -107,7 +107,7 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
                     className="w-full py-3 text-amber-500/80 hover:text-amber-500 border border-amber-500/30 hover:border-amber-500/60 rounded-lg text-sm font-mono flex items-center justify-center gap-2 transition-all"
                   >
                     <Users className="w-4 h-4" />
-                    {language === 'en' ? 'View Invite Details' : '查看邀请信息'}
+                    {t('inviteShareModal.viewDetails')}
                   </button>
                 </div>
 
