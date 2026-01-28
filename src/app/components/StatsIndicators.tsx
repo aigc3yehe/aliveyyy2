@@ -220,7 +220,6 @@ export function StatsIndicators({
           title={popupContent[activePopup as keyof typeof popupContent].title}
           description={popupContent[activePopup as keyof typeof popupContent].description}
           position={popupPosition}
-          actionButton={renderActionButton()}
         />
       )}
 

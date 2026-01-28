@@ -28,7 +28,7 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
     <>
       <AnimatePresence>
         {isOpen && !showList && (
-          <div className="fixed inset-0 z-[100]">
+          <div className="fixed inset-0 z-[110]">
             <div 
               className="absolute inset-0 bg-black/80 backdrop-blur-sm"
               onClick={onClose}
@@ -74,10 +74,10 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
                   {/* Promo Text */}
                   <div className="text-center space-y-2">
                     <p className="text-amber-100 font-mono text-sm leading-relaxed">
-                      {language === 'en' 
-                        ? 'Invite friends to join, and when they invite more friends, you earn extra Dopamine!' 
-                        : '成功邀请朋友加入、朋友再邀请更多朋友加入，你都能获得额外多巴胺！'}
-                    </p>
+                    {language === 'en' 
+                      ? 'Directly invite friends to earn 33% of the activation BNB fee, and indirectly invite friends to earn 13%.' 
+                      : '直接邀请朋友赚取 33% 的激活BNB费用，间接邀请朋友赚取 13% 的激活BNB费用。'}
+                  </p>
                   </div>
 
                   {/* Link Section */}

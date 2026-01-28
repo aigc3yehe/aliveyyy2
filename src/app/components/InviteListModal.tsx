@@ -55,8 +55,8 @@ export function InviteListModal({ isOpen, onClose }: InviteListModalProps) {
             {/* List */}
             <div className="overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-[#00ff41]/20 scrollbar-track-transparent">
               <div className="grid grid-cols-2 gap-2 px-2 py-2 text-xs text-gray-500 font-mono border-b border-[#00ff41]/10 mb-2">
-                <div>{language === 'en' ? 'USER' : '用户'}</div>
-                <div className="text-right">{language === 'en' ? 'INVITED' : '已邀请'}</div>
+                <div>{language === 'en' ? 'Direct Invites' : '直接邀请成功'}</div>
+                <div className="text-right">{language === 'en' ? 'Indirect Invites' : '间接邀请数'}</div>
               </div>
               
               {inviteData.map((item, i) => (
@@ -71,8 +71,8 @@ export function InviteListModal({ isOpen, onClose }: InviteListModalProps) {
             <div className="p-3 border-t border-[#00ff41]/30 bg-[#00ff41]/5 text-center">
               <p className="text-[10px] text-[#00ff41]/60 font-mono leading-relaxed px-2">
                 {language === 'en' 
-                  ? 'Each direct invite adds 0.1 Dopamine Index. Indirect invites add 0.01.' 
-                  : '每增加一个被邀请人，多巴胺系数增加0.1，被邀请人的邀请数量将给你增加0.01多巴胺系数'}
+                  ? 'Directly invite friends to earn 33% of the activation BNB fee, and indirectly invite friends to earn 13%.' 
+                  : '直接邀请朋友赚取 33% 的激活BNB费用，间接邀请朋友赚取 13% 的激活BNB费用。'}
               </p>
             </div>
             

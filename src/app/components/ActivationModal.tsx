@@ -95,6 +95,23 @@ export function ActivationModal() {
                 <div className="text-3xl font-bold text-white font-mono" style={{ textShadow: '0 0 10px rgba(245, 158, 11, 0.5)' }}>
                   0.015 BNB
                 </div>
+                
+                {/* Fee Distribution */}
+                <div className="mt-3 pt-3 border-t border-amber-500/20 text-[10px] text-amber-200/70 font-mono space-y-1">
+                  <p className="opacity-50 mb-1">{language === 'en' ? 'FEE DISTRIBUTION' : '费用分配'}</p>
+                  <div className="flex justify-between items-center">
+                    <span>{language === 'en' ? 'Direct Inviter' : '直接邀请人'}</span>
+                    <span className="text-amber-400 font-bold">33%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>{language === 'en' ? 'Indirect Inviter' : '间接邀请人'}</span>
+                    <span className="text-amber-400 font-bold">13%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>{language === 'en' ? '$Alive Liquidity Pool' : '$活着呢 流动性池'}</span>
+                    <span className="text-[#00ff41] font-bold">50%</span>
+                  </div>
+                </div>
               </div>
 
                {/* Daily Pool Estimate */}

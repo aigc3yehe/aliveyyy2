@@ -177,20 +177,11 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                   </div>
                 </div>
 
-                {/* 邀请按钮 - 加强引导 */}
-                <button
-                  onClick={() => setShowInviteModal(true)}
-                  className="w-full mt-2 bg-gradient-to-r from-amber-500/20 to-amber-600/20 border border-amber-500/50 hover:bg-amber-500/30 text-amber-500 py-2 rounded font-mono text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 group"
-                >
-                  <span className="text-lg group-hover:scale-110 transition-transform">👑</span>
-                  {language === 'en' ? 'Invite & Earn Dopamine!' : '邀请获得更多多巴胺！'}
-                </button>
-
                 {/* 领取按钮 */}
                 <motion.button
                   onClick={handleClaim}
                   disabled={totalDisplayAmount <= 0 || claimState === 'loading'}
-                  className="w-full bg-black border-2 border-[#00ff41] text-[#00ff41] py-4 font-mono text-lg font-bold hover:bg-[#00ff41] hover:text-black transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black disabled:hover:text-[#00ff41] relative flex flex-col items-center justify-center"
+                  className="w-full bg-black border-2 border-[#00ff41] text-[#00ff41] py-4 font-mono text-lg font-bold hover:bg-[#00ff41] hover:text-black transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black disabled:hover:text-[#00ff41] relative flex flex-col items-center justify-center mt-6"
                   whileHover={totalDisplayAmount > 0 ? { scale: 1.02 } : {}}
                   whileTap={totalDisplayAmount > 0 && claimState !== 'loading' ? { scale: 0.98 } : {}}
                 >
@@ -226,7 +217,7 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                     // {language === 'en' ? 'Higher Dopamine Index means earning $活着呢 faster' : '多巴胺指数越高，越能快速获得 $活着呢'}
                   </p>
                    <p className="text-amber-500/80 font-mono text-xs text-center mt-2 font-bold underline decoration-dotted underline-offset-2">
-                    {language === 'en' ? '>> Invite friends! Earn extra Dopamine! <<' : '>> 邀请你的朋友加入！获得额外多巴胺！ <<'}
+                    {language === 'en' ? '>> Invite friends! Earn BNB rewards! <<' : '>> 邀请你的朋友加入！获得BNB奖励！ <<'}
                   </p>
                 </div>
               </div>
