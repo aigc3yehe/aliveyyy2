@@ -4,6 +4,7 @@ import { Copy, Users, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { InviteListModal } from './InviteListModal';
+import { useAccount } from 'wagmi';
 
 interface InviteShareModalProps {
   isOpen: boolean;
@@ -12,15 +13,21 @@ interface InviteShareModalProps {
 
 export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
   const { language } = useGameStore();
+  const { address } = useAccount();
   const [showList, setShowList] = useState(false);
 
   // Mock Stats
   const directInvites = 12;
   const indirectInvites = 25;
-  const inviteLink = 'huozhene.io/?invite=1234a';
+
+  // Dynamic Invite Link
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const inviteLink = address
+    ? `${origin}?invite=${address}`
+    : `${origin}`;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(`https://${inviteLink}`);
+    navigator.clipboard.writeText(inviteLink);
     toast.success(language === 'en' ? 'Link Copied!' : '链接已复制！');
   };
 
@@ -29,7 +36,7 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
       <AnimatePresence>
         {isOpen && !showList && (
           <div className="fixed inset-0 z-[110]">
-            <div 
+            <div
               className="absolute inset-0 bg-black/80 backdrop-blur-sm"
               onClick={onClose}
             />
@@ -46,7 +53,7 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
                     <span className="text-2xl">👑</span>
                     {language === 'en' ? 'INVITE & EARN' : '邀请赚取奖励'}
                   </h2>
-                  <button 
+                  <button
                     onClick={onClose}
                     className="text-amber-500/70 hover:text-amber-500 font-bold"
                   >
@@ -74,10 +81,10 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
                   {/* Promo Text */}
                   <div className="text-center space-y-2">
                     <p className="text-amber-100 font-mono text-sm leading-relaxed">
-                    {language === 'en' 
-                      ? 'Directly invite friends to earn 33% of the activation BNB fee, and indirectly invite friends to earn 13%.' 
-                      : '直接邀请朋友赚取 33% 的激活BNB费用，间接邀请朋友赚取 13% 的激活BNB费用。'}
-                  </p>
+                      {language === 'en'
+                        ? 'Directly invite friends to earn 33% of the activation BNB fee, and indirectly invite friends to earn 13%.'
+                        : '直接邀请朋友赚取 33% 的激活BNB费用，间接邀请朋友赚取 13% 的激活BNB费用。'}
+                    </p>
                   </div>
 
                   {/* Link Section */}
@@ -104,8 +111,8 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
                   </button>
                 </div>
 
-                 {/* Scanline */}
-                 <div 
+                {/* Scanline */}
+                <div
                   className="absolute inset-0 pointer-events-none opacity-5"
                   style={{
                     background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(245, 158, 11, 0.2) 2px, rgba(245, 158, 11, 0.2) 4px)',
@@ -117,9 +124,9 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
         )}
       </AnimatePresence>
 
-      <InviteListModal 
-        isOpen={showList} 
-        onClose={() => setShowList(false)} 
+      <InviteListModal
+        isOpen={showList}
+        onClose={() => setShowList(false)}
       />
     </>
   );

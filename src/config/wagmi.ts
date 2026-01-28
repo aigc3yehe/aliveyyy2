@@ -13,7 +13,7 @@ import {
     binanceWallet,
     bybitWallet
 } from '@rainbow-me/rainbowkit/wallets';
-import { bsc } from 'wagmi/chains';
+import { bsc, anvil } from 'wagmi/chains';
 import { http } from 'wagmi';
 
 export const config = getDefaultConfig({

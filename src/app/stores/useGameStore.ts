@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 import { api } from '@/services/api';
-import { type WalletClient, parseEther, erc20Abi, formatEther } from 'viem';
-import { writeContract, waitForTransactionReceipt, readContract } from '@wagmi/core';
+import { type WalletClient, parseEther, erc20Abi, formatEther, isAddress } from 'viem';
+import { writeContract, waitForTransactionReceipt, readContract, getAccount } from '@wagmi/core';
 import { config } from '@/config/wagmi';
 import AliveClaimABI from '@/abis/AliveClaim.json';
 
 export interface UserStatusResponse {
   address: string;
   status: 'ALIVE' | 'DISCONNECTED';
+  activated: boolean; // Changed from isActivated
   hp: number;
   maxHp: number;
   consecutiveCheckinDays: number;
@@ -300,6 +301,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         hp: userData.hp,
         maxHp: userData.maxHp,
         isAlive: userData.status === 'ALIVE',
+        isAccountActivated: userData.activated, // Sync activation status
         streaks: userData.consecutiveCheckinDays,
         // Update user items to reflect consumed defibrillator if applicable
         userItems: userData.items || get().userItems,
@@ -313,10 +315,63 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   activateAccount: async () => {
-    // PROTOTYPE: Simulate a payment transaction delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    set({ isAccountActivated: true });
-    // In real app, this would verify transaction with backend
+    try {
+      const activationContract = import.meta.env.VITE_ALIVE_ACTIVATION_CONTRACT as `0x${string}`;
+      const defaultFee = import.meta.env.VITE_ACTIVATION_FEE || '0.015';
+      const fee = parseEther(defaultFee);
 
+      // Get referrer from URL/Storage
+      const urlParams = new URLSearchParams(window.location.search);
+      const inviteCode = urlParams.get('invite');
+
+      // Get current user address to prevent self-referral
+      const { address: currentAddress } = getAccount(config);
+
+      // Default referrer is burn address / zero address if invalid or missing
+      let referrer = '0x0000000000000000000000000000000000000000';
+
+      if (inviteCode && isAddress(inviteCode)) {
+        // Check if referrer is not self
+        if (currentAddress && inviteCode.toLowerCase() === currentAddress.toLowerCase()) {
+          console.warn('Self-referral detected, ignoring referrer');
+        } else {
+          referrer = inviteCode;
+        }
+      }
+
+      console.log('Activating with referrer:', referrer, 'Fee:', defaultFee);
+
+      const hash = await writeContract(config, {
+        address: activationContract,
+        abi: (await import('@/abis/AliveActivation.json')).default,
+        functionName: 'activate',
+        args: [referrer as `0x${string}`],
+        value: fee,
+      });
+
+      console.log('Activation tx:', hash);
+      await waitForTransactionReceipt(config, { hash });
+
+      console.log('Activation tx:', hash);
+      await waitForTransactionReceipt(config, { hash });
+
+      // Poll user status to sync backend state (backend checks chain state on read)
+      if (currentAddress) {
+        // Simple delay to allow block propagation if needed, though waitReceipt should suffice
+        // Fetch user data to trigger backend sync logic
+        const response = await api.get<{ data: UserStatusResponse }>(`/users/${currentAddress}`);
+        const userData = response.data.data;
+
+        // Update local state
+        set({ isAccountActivated: userData.activated });
+      } else {
+        // Fallback strictly for UI if address is somehow missing (unlikely)
+        set({ isAccountActivated: true });
+      }
+
+    } catch (error) {
+      console.error('Activation failed:', error);
+      throw error;
+    }
   },
 }));

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAccount, useDisconnect, useSignMessage, useSwitchChain } from 'wagmi';
 import { authService } from '../../services/auth.service';
 import { toast } from 'sonner';
+import { bsc, anvil } from 'viem/chains';
 
 export function useAuth() {
     const { address, isConnected, chainId } = useAccount();
@@ -14,11 +15,11 @@ export function useAuth() {
 
     const isAuthenticated = !!token;
 
-    // Check if connected to wrong network (BSC is chainId 56)
-    const isWrongNetwork = isConnected && chainId !== 56;
+    // Check if connected to wrong network
+    const isWrongNetwork = isConnected && chainId !== bsc.id;
 
     const switchNetwork = useCallback(() => {
-        switchChain({ chainId: 56 });
+        switchChain({ chainId: bsc.id });
     }, [switchChain]);
 
     // Login function: flow is Get Nonce -> Sign Message -> Login API

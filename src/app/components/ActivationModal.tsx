@@ -2,13 +2,17 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useGameStore } from '@/app/stores/useGameStore';
 import { useAuth } from '@/app/hooks/useAuth';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { LogOut, ShoppingBag, CheckCircle } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 import { formatTokenCount } from '@/utils/format';
 
-export function ActivationModal() {
-  const { isAccountActivated, activateAccount, language, globalStats } = useGameStore();
+export const ActivationModal = memo(function ActivationModal() {
+  const isAccountActivated = useGameStore(state => state.isAccountActivated);
+  const activateAccount = useGameStore(state => state.activateAccount);
+  const language = useGameStore(state => state.language);
+  const globalStats = useGameStore(state => state.globalStats);
+
   const { logout } = useAuth();
   const [isActivating, setIsActivating] = useState(false);
   const [searchParams] = useSearchParams();
@@ -39,9 +43,11 @@ export function ActivationModal() {
   const dailyPool = globalStats?.dailyPoolTotal || '100000000000000000000000'; // 100,000 * 1e18
   const dailyPoolFormatted = formatTokenCount(parseFloat(dailyPool) / 1e18);
 
+  const feeAmount = import.meta.env.VITE_ACTIVATION_FEE || '0.015';
+
   return (
     <AnimatePresence>
-      <motion.div 
+      <motion.div
         key="activation-modal-overlay"
         className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-auto"
         initial={{ opacity: 0 }}
@@ -93,9 +99,9 @@ export function ActivationModal() {
                   {language === 'en' ? 'Activation Fee' : '激活费用'}
                 </p>
                 <div className="text-3xl font-bold text-white font-mono" style={{ textShadow: '0 0 10px rgba(245, 158, 11, 0.5)' }}>
-                  0.015 BNB
+                  {feeAmount} BNB
                 </div>
-                
+
                 {/* Fee Distribution */}
                 <div className="mt-3 pt-3 border-t border-amber-500/20 text-[10px] text-amber-200/70 font-mono space-y-1">
                   <p className="opacity-50 mb-1">{language === 'en' ? 'FEE DISTRIBUTION' : '费用分配'}</p>
@@ -114,13 +120,13 @@ export function ActivationModal() {
                 </div>
               </div>
 
-               {/* Daily Pool Estimate */}
-               <div className="bg-[#00ff41]/5 border border-[#00ff41]/20 p-4 rounded-lg">
+              {/* Daily Pool Estimate */}
+              <div className="bg-[#00ff41]/5 border border-[#00ff41]/20 p-4 rounded-lg">
                 <p className="text-[#00ff41] font-mono text-xs mb-1 uppercase tracking-widest opacity-80">
                   {language === 'en' ? 'Est. Daily Pool Output' : '预估每日矿池产出'}
                 </p>
                 <div className="text-2xl font-bold text-[#00ff41] font-mono" style={{ textShadow: '0 0 10px rgba(0, 255, 65, 0.3)' }}>
-                  {dailyPoolFormatted} $Alive
+                  {dailyPoolFormatted} $活着呢
                 </div>
               </div>
             </div>
@@ -130,13 +136,13 @@ export function ActivationModal() {
               onClick={handleActivation}
               disabled={isActivating}
               className={`w-full py-4 font-mono text-lg font-bold uppercase tracking-wider transition-all duration-200 border-2 rounded-lg flex items-center justify-center gap-2
-                ${isActivating 
-                  ? 'bg-amber-900/20 border-amber-800 text-amber-700 cursor-not-allowed' 
+                ${isActivating
+                  ? 'bg-amber-900/20 border-amber-800 text-amber-700 cursor-not-allowed'
                   : 'bg-gradient-to-r from-[#00ff41] to-[#008f11] hover:from-[#00ff41] hover:to-[#00cc33] border-transparent text-black shadow-[0_0_20px_rgba(0,255,65,0.4)]'
                 }
               `}
             >
-              {isActivating 
+              {isActivating
                 ? (language === 'en' ? 'Processing...' : '处理中...')
                 : (
                   <>
@@ -146,11 +152,11 @@ export function ActivationModal() {
                 )
               }
             </button>
-            
+
             <div className="space-y-2">
               <p className="text-center text-gray-600 text-xs font-mono">
-                {language === 'en' 
-                  ? 'One-time payment only' 
+                {language === 'en'
+                  ? 'One-time payment only'
                   : '仅有这一次收费'
                 }
               </p>
@@ -158,8 +164,8 @@ export function ActivationModal() {
               {/* Referrer Info */}
               {inviteCode && (
                 <p className="text-center text-gray-500 text-[10px] font-mono border-t border-gray-800 pt-2 mt-2">
-                  {language === 'en' 
-                    ? `Your referrer is ${inviteCode}` 
+                  {language === 'en'
+                    ? `Your referrer is ${inviteCode}`
                     : `你的推荐人是 ${inviteCode}`
                   }
                 </p>
@@ -168,7 +174,7 @@ export function ActivationModal() {
           </div>
 
           {/* Scanline Effect */}
-          <div 
+          <div
             className="absolute inset-0 pointer-events-none opacity-10"
             style={{
               background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(245, 158, 11, 0.1) 2px, rgba(245, 158, 11, 0.1) 4px)',
@@ -178,4 +184,4 @@ export function ActivationModal() {
       </motion.div>
     </AnimatePresence>
   );
-}
+});

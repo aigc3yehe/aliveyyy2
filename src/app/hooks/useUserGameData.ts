@@ -133,6 +133,7 @@ export function useUserGameData(address?: string) {
                 userItems: userData.items || [],
                 userNonce: calculated.userNonce,
                 globalStats: dashboardData,
+                isAccountActivated: userData.activated, // Sync activation status
                 // Reset tick time to avoid massive jumps effectively? 
                 // Or keep it flowing. If we update base 'claimable', we might want to reset tick time 
                 // to now if the backend value is "current". 
