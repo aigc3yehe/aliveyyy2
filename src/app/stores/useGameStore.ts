@@ -144,7 +144,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     }[state.audioState] as 'all' | 'sfx_only' | 'mute';
     return { audioState: nextState };
   }),
-  setLanguage: (language) => set({ language }),
+  setLanguage: (language) => {
+    import('@/i18n').then(({ default: i18n }) => {
+      i18n.changeLanguage(language === 'cn' ? 'zh' : 'en');
+    });
+    set({ language });
+  },
 
   // fetchUserStatus, fetchTokenBalance, fetchGlobalStats removed in favor of useUserGameData hook
 

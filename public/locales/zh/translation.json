@@ -1,0 +1,123 @@
+{
+    "connection": {
+        "lost": "信号丢失",
+        "vitalSignsLost": "检测到生命体征消失",
+        "authenticating": "正在验证身份...",
+        "wrongNetwork": "网络错误，点击切换到 BSC 网络"
+    },
+    "home": {
+        "wrongNetwork": "网络错误，点击切换到 BSC 网络",
+        "connectionLost": "信号丢失",
+        "vitalSignsLost": "检测到生命体征消失",
+        "authenticating": "正在验证身份...",
+        "reviveDefibSuccess": "使用起搏器复活成功！",
+        "reviveFailed": "复活失败",
+        "useDefib": "使用心脏起搏器",
+        "defibDesc": "保留连胜和未领奖励",
+        "outOfStock": "(库存不足)",
+        "reviveStandardSuccess": "复活成功！连胜已重置。",
+        "standardRevive": "普通复活",
+        "standardReviveDesc": "重置连胜和未领奖励",
+        "currentMiningRate": "当前挖矿速率",
+        "tokenPerDay": "$活着呢/天",
+        "tellFriends": "告诉你的朋友！",
+        "miningRateShare": "我在 生存证明 当前挖矿速率是 {{rate}} $活着呢/天！你能活得比我久吗？@yeahhuozhene #生存证明 #Web3",
+        "checkin": {
+            "success": "签到成功！",
+            "hpPlus": "HP +1",
+            "hpFull": "HP已满！获得Token奖励",
+            "currentHp": "当前HP",
+            "failed": "签到失败",
+            "retry": "请稍后重试"
+        }
+    },
+    "revive": {
+        "useDefibrillator": "使用心脏起搏器",
+        "preserveStreak": "保留连胜和未领奖励",
+        "outOfStock": "(库存不足)",
+        "standard": "普通复活",
+        "resetStreak": "重置连胜和未领奖励",
+        "successDefib": "使用起搏器复活成功！",
+        "successStandard": "复活成功！连胜已重置。",
+        "failed": "复活失败"
+    },
+    "checkin": {
+        "success": "签到成功！",
+        "hpGained": "HP +1",
+        "hpFull": "HP已满！获得Token奖励",
+        "failed": "签到失败",
+        "tryAgain": "请稍后重试"
+    },
+    "claim": {
+        "title": "CLAIM_TOKENS",
+        "pendingRewards": "PENDING_REWARDS",
+        "dopamineIndex": "DOPAMINE_INDEX",
+        "warningreset": "// 警告：领取代币将重置多巴胺指数",
+        "warningdelay": "// 保持克制，延迟满足感可获得更高收益",
+        "button": {
+            "claiming": "领取中...",
+            "continue": "继续领取",
+            "default": "[ CLAIM_NOW ]"
+        },
+        "comingSoon": "// 立即获得 {{amount}} $活着呢",
+        "tip": "// 多巴胺指数越高，越能快速获得 $活着呢",
+        "successTitle": "领取成功！",
+        "received": "获得奖励",
+        "share": "分享到 X",
+        "shareLater": "稍后分享",
+        "successToast": "领取成功！",
+        "receivedToast": "获得 {{amount}} $活着呢",
+        "failedToast": "领取失败",
+        "rejected": "交易被拒绝",
+        "shareText": "我在 生存证明 中领取了 {{amount}} $活着呢！快来和我一起存活吧！@yeahhuozhene #生存证明 #Web3"
+    },
+    "unconnected": {
+        "readyToConnect": "准备连接",
+        "startProtocol": "启动协议开始获取$活着呢",
+        "connectWallet": "连接钱包",
+        "globalStatsRealtime": "> 全网实时数据",
+        "alivePlayers": "🟢 当前存活玩家",
+        "todaysPrizePool": "💰 今日奖池",
+        "todaysLostContact": "☠️ 今日失联",
+        "livesLost": "// 每分钟都有人在死亡边缘"
+    },
+    "stats": {
+        "status": "状态",
+        "alive": "存活",
+        "lost": "失联",
+        "days": "存活天数",
+        "survivalDays": "连续存活天数",
+        "survivalDaysDesc": "记录你已经连续存活的天数，只要存活，就能获得$活着呢。",
+        "multiplier": "存活系数",
+        "survivalMultiplier": "生存系数",
+        "survivalMultiplierDesc": "生存系数根据连续存活天数计算。系数越高，持续获得$活着呢的速率越快。",
+        "dopamine": "多巴胺指数",
+        "dopamineIndex": "多巴胺指数",
+        "dopamineIndexDesc": "多巴胺指数衡量你的延迟满足能力。指数越高，持续获得$活着呢的速率越快。领取$活着呢会导致多巴胺指数重置。",
+        "dayUnit": "天"
+    },
+    "info": {
+        "systemInfo": "SYSTEM_INFO",
+        "doctrine": {
+            "title": "学说",
+            "heading": "$活着呢 — 存在即价值",
+            "p1": "你每一天的存在，都在铸造价值。",
+            "p2": "每次心跳，都是对生命的确认。",
+            "p3": "连续存活天数越多，多巴胺越高，收获越丰。"
+        },
+        "rules": {
+            "title": "规则",
+            "survivalLaws": "生存法则",
+            "hp": "HP",
+            "hpDesc": "最大48点，每小时-1。归零=信号丢失。",
+            "checkin": "签到",
+            "checkinDesc": "恢复1点HP，增加连续存活天数加成。",
+            "dopamine": "多巴胺指数",
+            "dopamineDesc": "将 $活着呢 留在待领取箱内则会增长多巴胺系数。",
+            "claim": "领取",
+            "claimDesc": "将待领取代币转入余额，多巴胺重置。",
+            "survivalTip": "生存建议：延迟领取，积累更高多巴胺指数。"
+        },
+        "footer": "只要生存，就能获得$活着呢"
+    }
+}

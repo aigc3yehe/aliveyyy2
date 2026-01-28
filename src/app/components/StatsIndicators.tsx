@@ -11,6 +11,8 @@ interface StatsIndicatorsProps {
   language?: 'en' | 'cn';
 }
 
+import { useTranslation } from 'react-i18next';
+
 export function StatsIndicators({
   isAlive,
   survivalDays,
@@ -18,6 +20,7 @@ export function StatsIndicators({
   dopamineIndex,
   language = 'en',
 }: StatsIndicatorsProps) {
+  const { t } = useTranslation();
   const [activePopup, setActivePopup] = useState<string | null>(null);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -46,22 +49,16 @@ export function StatsIndicators({
 
   const popupContent = {
     days: {
-      title: language === 'en' ? 'SURVIVAL DAYS' : '连续存活天数',
-      description: language === 'en' 
-        ? 'Survival days track the time you keep your HP above 0. Connection loss (HP=0) resets the count. Longer streaks increase your Survival Multiplier.'
-        : '记录你已经连续存活的天数，只要存活，就能获得$活着呢。',
+      title: t('stats.survivalDays'),
+      description: t('stats.survivalDaysDesc'),
     },
     survival: {
-      title: language === 'en' ? 'SURVIVAL MULTIPLIER' : '生存系数',
-      description: language === 'en'
-        ? 'Survival Multiplier is calculated based on your streak. Higher multiplier means more $活着呢 rewards per check-in. Keep the streak alive!'
-        : '生存系数根据连续存活天数计算。系数越高，持续获得$活着呢的速率越快。',
+      title: t('stats.survivalMultiplier'),
+      description: t('stats.survivalMultiplierDesc'),
     },
     dopamine: {
-      title: language === 'en' ? 'DOPAMINE INDEX' : '多巴胺指数',
-      description: language === 'en'
-        ? 'Dopamine Index measures your delayed gratification. Restraint is key to survival.'
-        : '多巴胺指数衡量你的延迟满足能力。指数越高，持续获得$活着呢的速率越快。领取$活着呢会导致多巴胺指数重置。',
+      title: t('stats.dopamineIndex'),
+      description: t('stats.dopamineIndexDesc'),
     },
   };
 
@@ -99,16 +96,16 @@ export function StatsIndicators({
       <div className="flex flex-col gap-2 p-3 border-none rounded-lg">
         {/* 状态显示 */}
         <div className="flex items-center justify-start gap-4 pb-2 mb-1">
-          <span 
+          <span
             className="text-gray-300 font-mono text-[13px] font-bold"
             style={{ textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000' }}
           >
-            {language === 'en' ? 'STATUS' : '状态'}
+            {t('stats.status')}
           </span>
           <motion.span
             className={`font-mono text-[16px] font-bold ${isAlive ? 'text-[#00ff41]' : 'text-red-500'}`}
             style={{
-              textShadow: isAlive 
+              textShadow: isAlive
                 ? '0px 2px 4px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,255,65,0.4)'
                 : '0px 2px 4px rgba(0,0,0,0.8), 0px 0px 8px rgba(239,68,68,0.4)',
             }}
@@ -117,7 +114,7 @@ export function StatsIndicators({
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            {isAlive ? (language === 'en' ? 'ALIVE' : '存活') : (language === 'en' ? 'LOST' : '失联')}
+            {isAlive ? t('stats.alive') : t('stats.lost')}
           </motion.span>
         </div>
 
@@ -130,11 +127,11 @@ export function StatsIndicators({
           whileTap={{ scale: 0.98 }}
         >
           <div className="flex items-center justify-start gap-4">
-            <span 
+            <span
               className="text-gray-300 font-mono text-[13px] font-bold"
               style={{ textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000' }}
             >
-              {language === 'en' ? 'DAYS' : '存活天数'}
+              {t('stats.days')}
             </span>
             <motion.span
               className="text-[#00ff41] font-mono text-[16px] font-bold border-b border-dashed border-[#00ff41]/50 group-hover:border-[#00ff41]"
@@ -146,7 +143,7 @@ export function StatsIndicators({
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.2 }}
             >
-              {displaySurvivalDays}{language === 'en' ? 'd' : '天'}
+              {displaySurvivalDays}{t('stats.dayUnit')}
             </motion.span>
           </div>
         </motion.button>
@@ -160,11 +157,11 @@ export function StatsIndicators({
           whileTap={{ scale: 0.98 }}
         >
           <div className="flex items-center justify-start gap-4">
-            <span 
+            <span
               className="text-gray-300 font-mono text-[13px] font-bold"
               style={{ textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000' }}
             >
-              {language === 'en' ? 'MULTIPLIER' : '存活系数'}
+              {t('stats.multiplier')}
             </span>
             <motion.span
               className="text-yellow-400 font-mono text-[16px] font-bold border-b border-dashed border-yellow-400/50 group-hover:border-yellow-400"
@@ -190,11 +187,11 @@ export function StatsIndicators({
           whileTap={{ scale: 0.98 }}
         >
           <div className="flex items-center justify-start gap-4">
-            <span 
+            <span
               className="text-gray-300 font-mono text-[13px] font-bold"
               style={{ textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000' }}
             >
-              {language === 'en' ? 'DOPAMINE' : '多巴胺指数'}
+              {t('stats.dopamine')}
             </span>
             <motion.span
               className="text-orange-400 font-mono text-[16px] font-bold border-b border-dashed border-orange-400/50 group-hover:border-orange-400"

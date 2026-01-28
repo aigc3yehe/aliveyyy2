@@ -1,0 +1,123 @@
+{
+    "connection": {
+        "lost": "CONNECTION LOST",
+        "vitalSignsLost": "Vital Signs Lost",
+        "authenticating": "Authenticating...",
+        "wrongNetwork": "Wrong Network. Click to switch to BSC."
+    },
+    "home": {
+        "wrongNetwork": "Wrong Network. Click to switch to BSC.",
+        "connectionLost": "CONNECTION LOST",
+        "vitalSignsLost": "Vital Signs Lost",
+        "authenticating": "Authenticating...",
+        "reviveDefibSuccess": "Revived with Defibrillator!",
+        "reviveFailed": "Failed to revive",
+        "useDefib": "USE DEFIBRILLATOR",
+        "defibDesc": "Preserve Streak & Rewards",
+        "outOfStock": "(Out of Stock)",
+        "reviveStandardSuccess": "Revived! Streak reset.",
+        "standardRevive": "STANDARD REVIVE",
+        "standardReviveDesc": "Reset Streak & Unclaimed",
+        "currentMiningRate": "Current mining rate",
+        "tokenPerDay": "$活着呢/day",
+        "tellFriends": "Tell your friends!",
+        "miningRateShare": "My current mining rate is {{rate}} $活着呢/day in Proof of Survival! Can you survive longer than me? @yeahhuozhene #ProofOfSurvival #Web3",
+        "checkin": {
+            "success": "Check-in successful!",
+            "hpPlus": "HP +1",
+            "hpFull": "HP Full! Tokens Earned",
+            "currentHp": "Current HP",
+            "failed": "Check-in failed",
+            "retry": "Please try again later"
+        }
+    },
+    "revive": {
+        "useDefibrillator": "USE DEFIBRILLATOR",
+        "preserveStreak": "Preserve Streak & Rewards",
+        "outOfStock": "(Out of Stock)",
+        "standard": "STANDARD REVIVE",
+        "resetStreak": "Reset Streak & Unclaimed",
+        "successDefib": "Revived with Defibrillator!",
+        "successStandard": "Revived! Streak reset.",
+        "failed": "Failed to revive"
+    },
+    "checkin": {
+        "success": "Check-in successful!",
+        "hpGained": "HP +1",
+        "hpFull": "HP Full! Tokens Earned",
+        "failed": "Check-in failed",
+        "tryAgain": "Please try again later"
+    },
+    "claim": {
+        "title": "CLAIM_TOKENS",
+        "pendingRewards": "PENDING_REWARDS",
+        "dopamineIndex": "DOPAMINE_INDEX",
+        "warningreset": "// WARNING: Claiming tokens resets Dopamine Index",
+        "warningdelay": "// Restraint and delayed gratification yield higher rewards",
+        "button": {
+            "claiming": "CLAIMING...",
+            "continue": "Continue claiming",
+            "default": "[ CLAIM_NOW ]"
+        },
+        "comingSoon": "// Coming {{amount}} $活着呢",
+        "tip": "// Higher Dopamine Index means earning $活着呢 faster",
+        "successTitle": "CLAIM SUCCESS!",
+        "received": "You received",
+        "share": "Share on X",
+        "shareLater": "Share Later",
+        "successToast": "Claim Successful!",
+        "receivedToast": "Received {{amount}} $活着呢",
+        "failedToast": "Claim Failed",
+        "rejected": "Transaction rejected",
+        "shareText": "I just claimed {{amount}} $活着呢 in the Proof of Survival! Come and survive with me! @yeahhuozhene #ProofOfSurvival #Web3"
+    },
+    "unconnected": {
+        "readyToConnect": "READY TO CONNECT",
+        "startProtocol": "Start protocol to get $活着呢",
+        "connectWallet": "CONNECT WALLET",
+        "globalStatsRealtime": "> GLOBAL_STATS_REALTIME",
+        "alivePlayers": "🟢 Alive Players",
+        "todaysPrizePool": "💰 Today's Prize Pool",
+        "todaysLostContact": "☠️ Today's Lost Contact",
+        "livesLost": "// Lives are lost every minute"
+    },
+    "stats": {
+        "status": "STATUS",
+        "alive": "ALIVE",
+        "lost": "LOST",
+        "days": "DAYS",
+        "survivalDays": "SURVIVAL DAYS",
+        "survivalDaysDesc": "Survival days track the time you keep your HP above 0. Connection loss (HP=0) resets the count. Longer streaks increase your Survival Multiplier.",
+        "multiplier": "MULTIPLIER",
+        "survivalMultiplier": "SURVIVAL MULTIPLIER",
+        "survivalMultiplierDesc": "Survival Multiplier is calculated based on your streak. Higher multiplier means more $活着呢 rewards per check-in. Keep the streak alive!",
+        "dopamine": "DOPAMINE",
+        "dopamineIndex": "DOPAMINE INDEX",
+        "dopamineIndexDesc": "Dopamine Index measures your delayed gratification. Restraint is key to survival.",
+        "dayUnit": "d"
+    },
+    "info": {
+        "systemInfo": "SYSTEM_INFO",
+        "doctrine": {
+            "title": "DOCTRINE",
+            "heading": "$活着呢 — EXISTENCE IS VALUE",
+            "p1": "Your existence every day is forging value.",
+            "p2": "Every heartbeat is a confirmation of life.",
+            "p3": "The longer the streak, the higher the dopamine, the richer the harvest."
+        },
+        "rules": {
+            "title": "RULES",
+            "survivalLaws": "SURVIVAL LAWS",
+            "hp": "HP",
+            "hpDesc": "Max 48. -1 per hour. Zero = Signal Lost.",
+            "checkin": "Check-in",
+            "checkinDesc": "Recover 1 HP. Increases survival streak bonus.",
+            "dopamine": "Dopamine",
+            "dopamineDesc": "Grows by not claiming $活着呢 for consecutive days.",
+            "claim": "Claim",
+            "claimDesc": "Transfer pending tokens to balance. Resets Dopamine.",
+            "survivalTip": "SURVIVAL TIP: Delay claiming to accumulate higher Dopamine Index."
+        },
+        "footer": "AS LONG AS YOU SURVIVE, YOU EARN $活着呢"
+    }
+}

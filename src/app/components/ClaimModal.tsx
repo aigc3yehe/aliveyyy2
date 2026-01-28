@@ -4,7 +4,8 @@ import { useGameStore } from '@/app/stores/useGameStore';
 import { toast } from 'sonner';
 import { formatTokenCount } from '@/utils/format';
 import { useState } from 'react';
-import { useWalletClient } from 'wagmi';
+import { useTranslation } from 'react-i18next';
+import { useAccount, useWalletClient } from 'wagmi';
 
 import { InviteShareModal } from '@/app/components/InviteShareModal';
 
@@ -22,6 +23,7 @@ interface ClaimModalProps {
 
 export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
   const { claimable, dopamineIndex, claimRewards, language } = useGameStore(); // userNonce removed as not used directly here anymore
+  const { t } = useTranslation();
   const [claimState, setClaimState] = useState<'initial' | 'loading' | 'success'>('initial');
   const [claimedAmount, setClaimedAmount] = useState(0);
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -50,16 +52,16 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
         const result = await claimRewards(walletClient);
         setClaimedAmount(result.amount);
         setClaimState('success');
-        toast.success(language === 'en' ? 'Claim Successful!' : '领取成功！', {
-          description: `${language === 'en' ? 'Received' : '获得'} ${formatTokenCount(amount)} $活着呢`,
+        toast.success(t('claim.successToast'), {
+          description: t('claim.receivedToast', { amount: formatTokenCount(amount) }),
         });
       } catch (error: any) {
         console.error('Claim failed in modal:', error);
         setClaimState('initial');
         // Nicer error message if user rejected
         const msg = error.details || error.message || 'Unknown error';
-        setErrorMsg(msg.includes('User rejected') ? 'Transaction rejected' : 'Claim failed. See console.');
-        toast.error(language === 'en' ? 'Claim Failed' : '领取失败', {
+        setErrorMsg(msg.includes('User rejected') ? t('claim.rejected') : 'Claim failed. See console.');
+        toast.error(t('claim.failedToast'), {
           description: msg.slice(0, 100)
         });
       }
@@ -67,10 +69,7 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
   };
 
   const handleShare = () => {
-    const text = language === 'en'
-      ? `I just claimed ${formatTokenCount(claimedAmount)} $活着呢 in the 生存证明! Come and survive with me! @yeahhuozhene #生存证明 #Web3`
-      : `我在 生存证明 中领取了 ${formatTokenCount(claimedAmount)} $活着呢！快来和我一起存活吧！@yeahhuozhene #生存证明 #Web3`;
-
+    const text = t('claim.shareText', { amount: formatTokenCount(claimedAmount) });
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   };
@@ -114,7 +113,7 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
               {/* 标题栏 */}
               <div className="bg-[#00ff41] p-3">
                 <h2 className="text-black font-mono text-lg font-bold tracking-wider text-center">
-                  {'>'} CLAIM_TOKENS
+                  {'>'} {t('claim.title')}
                 </h2>
               </div>
 
@@ -123,7 +122,7 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                 {/* 可领取的$活着呢显示 */}
                 <div className="border border-[#00ff41]/30 p-4">
                   <div className="text-gray-400 font-mono text-xs mb-2">
-                    [ PENDING_REWARDS ]
+                    [ {t('claim.pendingRewards')} ]
                   </div>
                   <motion.div
                     className={`text-[#00ff41] font-mono font-bold text-center ${pendingClaimAmount > 0 ? 'text-2xl' : 'text-4xl'}`}
@@ -147,7 +146,7 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                     <div className="text-yellow-500 text-2xl flex-shrink-0">⚠️</div>
                     <div className="flex-1">
                       <div className="text-yellow-500 font-mono text-xs mb-2">
-                        [ DOPAMINE_INDEX ]
+                        [ {t('claim.dopamineIndex')} ]
                       </div>
                       <motion.div
                         className="text-yellow-400 font-mono text-2xl font-bold mb-2"
@@ -159,19 +158,9 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                         x{dopamineIndex.toFixed(1)}
                       </motion.div>
                       <div className="text-gray-400 font-mono text-xs leading-relaxed">
-                        {language === 'en' ? (
-                          <>
-                            // WARNING: Claiming tokens resets Dopamine Index
-                            <br />
-                            // Restraint and delayed gratification yield higher rewards
-                          </>
-                        ) : (
-                          <>
-                            // 警告：领取代币将重置多巴胺指数
-                            <br />
-                            // 保持克制，延迟满足感可获得更高收益
-                          </>
-                        )}
+                        {t('claim.warningreset')}
+                        <br />
+                        {t('claim.warningdelay')}
                       </div>
                     </div>
                   </div>
@@ -186,21 +175,18 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                   whileTap={totalDisplayAmount > 0 && claimState !== 'loading' ? { scale: 0.98 } : {}}
                 >
                   {claimState === 'loading' ? (
-                    <span className="animate-pulse">{language === 'en' ? 'CLAIMING...' : '领取中...'}</span>
+                    <span className="animate-pulse">{t('claim.button.claiming')}</span>
                   ) : (
                     pendingClaimAmount > 0 ? (
-                      language === 'en' ? 'Continue claiming' : '继续领取'
+                      t('claim.button.continue')
                     ) : (
-                      '[ CLAIM_NOW ]'
+                      t('claim.button.default')
                     )
                   )}
 
                   {pendingClaimAmount > 0 && (
                     <div className="font-mono text-[10px] text-gray-500 mt-1">
-                      {language === 'en'
-                        ? `// Coming ${formatTokenCount(pendingClaimAmount)} $活着呢`
-                        : `// 立即获得 ${formatTokenCount(pendingClaimAmount)} $活着呢`
-                      }
+                      {t('claim.comingSoon', { amount: formatTokenCount(pendingClaimAmount) })}
                     </div>
                   )}
                 </motion.button>
@@ -214,7 +200,7 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                 {/* 底部提示 */}
                 <div className="border-t border-[#00ff41]/20 pt-4 cursor-pointer hover:bg-[#00ff41]/5 transition-colors -mx-6 px-6 pb-2" onClick={() => setShowInviteModal(true)}>
                   <p className="text-gray-600 font-mono text-xs text-center mt-1">
-                    // {language === 'en' ? 'Higher Dopamine Index means earning $活着呢 faster' : '多巴胺指数越高，越能快速获得 $活着呢'}
+                    {t('claim.tip')}
                   </p>
                    <p className="text-amber-500/80 font-mono text-xs text-center mt-2 font-bold underline decoration-dotted underline-offset-2">
                     {language === 'en' ? '>> Invite friends! Earn BNB rewards! <<' : '>> 邀请你的朋友加入！获得BNB奖励！ <<'}
@@ -273,7 +259,7 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                   className="text-[#00ff41] font-bold text-3xl mb-2 text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                   style={{ textShadow: '0 0 10px rgba(0, 255, 65, 0.4)' }}
                 >
-                  {language === 'en' ? 'CLAIM SUCCESS!' : '领取成功！'}
+                  {t('claim.successTitle')}
                 </motion.h2>
 
                 {/* 获得金额 */}
@@ -284,7 +270,7 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                   className="mb-8 text-center"
                 >
                   <p className="text-[#00ff41]/80 text-sm mb-2 font-mono">
-                    {language === 'en' ? 'You received' : '获得奖励'}
+                    {t('claim.received')}
                   </p>
                   <div className="text-5xl font-bold text-white mb-2 drop-shadow-[0_4px_0_rgba(0,100,25,0.8)]" style={{ fontFamily: 'Arial, sans-serif' }}>
                     {formatTokenCount(claimedAmount)}
@@ -303,7 +289,7 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                   className="w-full bg-black text-[#00ff41] border border-[#00ff41] py-4 rounded-xl font-bold text-lg mb-4 flex items-center justify-center gap-2 hover:bg-[#00ff41] hover:text-black transition-all transform hover:scale-105 shadow-[0_0_15px_rgba(0,255,65,0.2)]"
                 >
                   <Twitter className="w-5 h-5" />
-                  {language === 'en' ? 'Share on X' : '分享到 X'}
+                  {t('claim.share')}
                 </motion.button>
 
                 {/* 稍后分享按钮 (Close) */}
@@ -314,7 +300,7 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                   onClick={handleClose}
                   className="text-[#00ff41]/50 hover:text-[#00ff41] font-mono text-sm transition-colors"
                 >
-                  {language === 'en' ? 'Share Later' : '稍后分享'}
+                  {t('claim.shareLater')}
                 </motion.button>
               </div>
             </motion.div>
