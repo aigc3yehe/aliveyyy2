@@ -171,7 +171,8 @@ export default function Home() {
   useEffect(() => {
     if (isConnected && !isAuthenticated && !isLoggingIn && retryCount < 3) {
       const timer = setTimeout(async () => {
-        const success = await login();
+        // Suppress toast for first 2 retries (0 and 1)
+        const success = await login({ silent: retryCount < 2 });
         if (!success) {
           setRetryCount(prev => prev + 1);
         }

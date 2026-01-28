@@ -22,10 +22,12 @@ export function useAuth() {
     }, [switchChain]);
 
     // Login function: flow is Get Nonce -> Sign Message -> Login API
-    const login = useCallback(async (): Promise<boolean> => {
+    const login = useCallback(async (options?: { silent?: boolean }): Promise<boolean> => {
         if (!address || !isConnected) return false;
         if (isWrongNetwork) {
-            toast.error('Please switch to BSC network');
+            if (!options?.silent) {
+                toast.error('Please switch to BSC network');
+            }
             switchNetwork();
             return false;
         }
@@ -50,9 +52,11 @@ export function useAuth() {
             return true;
         } catch (error) {
             console.error('Login failed:', error);
-            toast.error('Login failed', {
-                description: 'Please try again'
-            });
+            if (!options?.silent) {
+                toast.error('Login failed', {
+                    description: 'Please try again'
+                });
+            }
             return false;
             // Disconnect if login failed to reset state
             // disconnect(); 
