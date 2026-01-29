@@ -1,11 +1,13 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { useGameStore } from '@/app/stores/useGameStore';
-import { Copy, Users, ExternalLink } from 'lucide-react';
+import { Copy, Users, ExternalLink, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { InviteListModal } from './InviteListModal';
 import { useAccount } from 'wagmi';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from 'urql';
+import { GET_USER_REFERRAL_STATS, ReferralStatsData } from '@/services/referralQueries';
 
 interface InviteShareModalProps {
   isOpen: boolean;
@@ -18,9 +20,16 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
   const { t } = useTranslation();
   const [showList, setShowList] = useState(false);
 
-  // Mock Stats
-  const directInvites = 12;
-  const indirectInvites = 25;
+  // Fetch referral stats from subgraph
+  const [{ data, fetching, error }] = useQuery<ReferralStatsData>({
+    query: GET_USER_REFERRAL_STATS,
+    variables: { userId: address?.toLowerCase() },
+    pause: !address || !isOpen,
+  });
+
+  // Extract counts from data
+  const directInvites = data?.user?.level1ReferralCount ?? 0;
+  const indirectInvites = data?.user?.level2ReferralCount ?? 0;
 
   // Dynamic Invite Link
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
@@ -70,13 +79,21 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
                       <p className="text-amber-500/70 text-[10px] uppercase font-bold tracking-wider mb-1">
                         {t('inviteShareModal.directInvites')}
                       </p>
-                      <p className="text-2xl font-bold text-white font-mono">{directInvites}</p>
+                      {fetching ? (
+                        <Loader2 className="w-5 h-5 animate-spin text-amber-500 mx-auto" />
+                      ) : (
+                        <p className="text-2xl font-bold text-white font-mono">{directInvites}</p>
+                      )}
                     </div>
                     <div className="bg-amber-900/10 border border-amber-500/30 p-3 rounded-lg text-center">
                       <p className="text-amber-500/70 text-[10px] uppercase font-bold tracking-wider mb-1">
                         {t('inviteShareModal.indirectInvites')}
                       </p>
-                      <p className="text-2xl font-bold text-white font-mono">{indirectInvites}</p>
+                      {fetching ? (
+                        <Loader2 className="w-5 h-5 animate-spin text-amber-500 mx-auto" />
+                      ) : (
+                        <p className="text-2xl font-bold text-white font-mono">{indirectInvites}</p>
+                      )}
                     </div>
                   </div>
 
@@ -131,3 +148,4 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
     </>
   );
 }
+

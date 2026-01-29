@@ -2,12 +2,14 @@ import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { Link } from 'react-router';
-import { ArrowLeft, TrendingUp } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Loader2 } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { useGameStore, LeaderboardEntry } from '@/app/stores/useGameStore';
 import { useUserGameData } from '@/app/hooks/useUserGameData';
 import { fetcher } from '@/services/api';
 import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95cdb7a89980e1a1c18de7.webp';
+import { useQuery } from 'urql';
+import { GET_USER_REFERRAL_STATS, ReferralStatsData } from '@/services/referralQueries';
 
 import { InviteShareModal } from '@/app/components/InviteShareModal';
 
@@ -30,6 +32,16 @@ export default function Leaderboard() {
 
   // Use SWR for fetching leaderboard
   const { data: rawLeaderboardData } = useSWR<LeaderboardEntry[]>('/dashboard/leaderboard?sortBy=rewardWeight', fetcher);
+
+  // Fetch referral stats from subgraph
+  const [{ data: referralData, fetching: referralFetching }] = useQuery<ReferralStatsData>({
+    query: GET_USER_REFERRAL_STATS,
+    variables: { userId: address?.toLowerCase() },
+    pause: !address,
+  });
+
+  const directInvites = referralData?.user?.level1ReferralCount ?? 0;
+  const indirectInvites = referralData?.user?.level2ReferralCount ?? 0;
 
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardDisplayItem[]>([]);
   // InviteShareModal integration
@@ -218,10 +230,16 @@ export default function Leaderboard() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                         >
-                          <span className="text-lg">12</span>
-                          <span className="text-[10px] text-amber-500/60 font-medium">
-                            {language === 'en' ? '(Direct) / 25 (Indirect)' : '(直推) / 25 (间接)'}
-                          </span>
+                          {referralFetching ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
+                          ) : (
+                            <>
+                              <span className="text-lg">{directInvites}</span>
+                              <span className="text-[10px] text-amber-500/60 font-medium">
+                                {language === 'en' ? `(Direct) / ${indirectInvites} (Indirect)` : `(直推) / ${indirectInvites} (间接)`}
+                              </span>
+                            </>
+                          )}
                         </motion.div>
                       </div>
                     </div>
