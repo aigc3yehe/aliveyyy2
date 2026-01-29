@@ -80,11 +80,13 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
   };
 
   return (
+    <>
     <AnimatePresence mode="wait">
       {isOpen && (
         <>
           {/* 背景遮罩 */}
           <motion.div
+            key="backdrop"
             className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -308,11 +310,14 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
         </>
       )}
 
-      {/* Invite Share Modal */}
-      <InviteShareModal
-        isOpen={showInviteModal}
-        onClose={() => setShowInviteModal(false)}
-      />
+
     </AnimatePresence>
+
+    {/* Invite Share Modal - Rendered outside AnimatePresence to avoid key conflicts */}
+    <InviteShareModal
+      isOpen={showInviteModal}
+      onClose={() => setShowInviteModal(false)}
+    />
+    </>
   );
 }

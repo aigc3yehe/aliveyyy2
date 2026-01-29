@@ -142,7 +142,7 @@ function playAnimationSequence(
 export const useDecorationStore = create<DecorationState>((set, get) => {
   // Try to load from cache on store initialization
   const cached = loadCachedConfig();
-  const initialConfig = cached?.config || DEFAULT_CONFIG;
+  const initialConfig = { ...DEFAULT_CONFIG, ...(cached?.config || {}) };
   const initialFetchTime = cached?.timestamp || null;
 
   return {

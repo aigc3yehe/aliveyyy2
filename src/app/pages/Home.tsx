@@ -20,7 +20,7 @@ import imgLayerPlayer05 from '@/assets/player05_compressed.webp';
 import imgLayerDeadman from '@/assets/deadman_compressed.webp';
 import imgLayerPhoto from '@/assets/photo_compressed.webp';
 import imgLayerHolographic from '@/assets/Holographic display_compressed.webp';
-import imgLayerTotalBg from '@/assets/total_bg_compressed.webp';
+// import imgLayerTotalBg from '@/assets/total_bg_compressed.webp';
 import imgAliveBtn from '@/assets/fd492cf3478c581e2ebbfb59ed8c4aa19c961a66.webp';
 import { InviteShareModal } from '@/app/components/InviteShareModal';
 import imgStoreBtn from '@/assets/c295b3b73b51e093b63ff0a1d6a381dfcbc47839.webp';
@@ -62,7 +62,7 @@ import soundYawning from '@/assets/yawning.mp3';
 // Decoration asset mapping (includes animation frame assets)
 const DECORATION_ASSETS: Record<string, Record<string, string>> = {
   background: {
-    default: imgLayerTotalBg,
+    default: '/total_bg.webp',
   },
   holographic: {
     default: imgLayerHolographic,
@@ -542,6 +542,8 @@ export default function Home() {
             )}
 
             {/* Layer 6: 最底层背景 (total_bg) */}
+
+            {/* Layer 6: 最底层背景 (total_bg) */}
             <img
               src={DECORATION_ASSETS.background[isAlive ? (layerOverrides.background || effectiveConfig.background) : 'default']}
               alt="Background"
@@ -557,6 +559,7 @@ export default function Home() {
                 filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)',
               }}
             />
+            
             {/* Layer 4: 照片 (photo) */}
             <img
               src={DECORATION_ASSETS.photo[isAlive ? (layerOverrides.photo || effectiveConfig.photo) : 'default']}
@@ -564,6 +567,7 @@ export default function Home() {
               className="absolute inset-0 w-full h-full object-cover"
               style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
             />
+            
             {/* Layer 3: 玩家 (player) */}
             <img
               src={DECORATION_ASSETS.player[isAlive ? (layerOverrides.player || effectiveConfig.player) : 'deadman']}
@@ -585,6 +589,7 @@ export default function Home() {
               className="absolute inset-0 w-full h-full object-cover pointer-events-none"
               style={{ filter: isConnected ? 'none' : 'brightness(0.5) blur(4px)' }}
             />
+
 
             {/* Interaction Click Zones (z-20) */}
             <div className="absolute inset-0 z-20">
