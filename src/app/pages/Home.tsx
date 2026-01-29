@@ -1,11 +1,10 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router';
 import { useEffect, useState, useRef } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 import useSWR from 'swr';
 import { fetcher } from '@/services/api';
-import svgPaths from '@/imports/svg-5a80hypqpv';
 import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95cdb7a89980e1a1c18de7.webp';
-import imgBg from '@/assets/dca99f7bd6ea1c0f2b1a15f76d3e0bba21ec1e4d.webp';
 // Game Background Layers (from top/front to bottom/back)
 import imgLayerStove from '@/assets/stove_compressed.webp';
 import imgLayerBad from '@/assets/bad_compressed.webp';
@@ -299,7 +298,7 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [isConnected, isAlive, playSound, setLayerOverride, clearLayerOverride]);
 
-  const handleCheckIn = async () => {
+  const handleCheckIn = useDebouncedCallback(async () => {
     // Play random heart sound
     const heartSounds = [soundHeart01, soundHeart02, soundHeart03];
     const randomSound = heartSounds[Math.floor(Math.random() * heartSounds.length)];
@@ -338,7 +337,7 @@ export default function Home() {
         description: t('home.checkin.retry')
       });
     }
-  };
+  }, 1500, { leading: true, trailing: false }); // 1.5 second debounce, fire on first click
 
   // CRT 扫描线效果
   const scanlineEffect = (
