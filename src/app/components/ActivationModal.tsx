@@ -43,9 +43,24 @@ export const ActivationModal = memo(function ActivationModal() {
     }
   };
 
-  // Mock global stats if not available for prototype
-  const dailyPool = globalStats?.dailyPoolTotal || '100000000000000000000000'; // 100,000 * 1e18
-  const dailyPoolFormatted = formatTokenCount(parseFloat(dailyPool) / 1e18);
+  // Calculate estimated daily earnings for a new user
+  // Assumption: New user start with weight ~1.0 (Multiplier 1.0 * Dopamine 1.0)
+  // Backend uses WEIGHT_SCALE = 10000 for precision, so 1.0 => 10000
+  const DEFAULT_USER_WEIGHT = 10000;
+
+  const dailyPoolTotal = parseFloat(globalStats?.dailyPoolTotal || '0');
+  const totalWeight = parseFloat(globalStats?.totalRewardWeight || '0');
+
+  // Avoid division by zero if fresh game
+  const estimatedShare = totalWeight + DEFAULT_USER_WEIGHT > 0
+    ? DEFAULT_USER_WEIGHT / (totalWeight + DEFAULT_USER_WEIGHT)
+    : 1; // If no one else, you get 100%? Or 0? Let's assume reasonable start.
+
+  // If global stats missing, fallback to 0 or a placeholder. 
+  // Ideally we should have stats. If not, defaulting to 0 is safer than misleading huge number.
+  const estimatedDailyEarnings = globalStats ? (dailyPoolTotal / 1e18) * estimatedShare : 0;
+
+  const estimatedDailyFormatted = formatTokenCount(estimatedDailyEarnings);
 
   const feeAmount = import.meta.env.VITE_ACTIVATION_FEE || '0.015';
 
@@ -127,7 +142,7 @@ export const ActivationModal = memo(function ActivationModal() {
                   {t('activationModal.estDaily')}
                 </p>
                 <div className="text-2xl font-bold text-[#00ff41] font-mono" style={{ textShadow: '0 0 10px rgba(0, 255, 65, 0.3)' }}>
-                  {dailyPoolFormatted} $活着呢
+                  {estimatedDailyFormatted} $活着呢
                 </div>
               </div>
             </div>
