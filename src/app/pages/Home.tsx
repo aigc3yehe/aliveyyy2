@@ -107,7 +107,22 @@ export default function Home() {
   // Derived language for compatibility if needed, or just use i18n.language
   // We keep using store's setLanguage to trigger the sync which we added back to store
 
-  const { hp, maxHp, isAlive, streaks, survivalMultiplier, dopamineIndex, audioState, language, checkIn, reconnect, cycleAudioState, setLanguage, claimable, userEmissionRate, userItems, userNonce } = useGameStore();
+  const {
+    hp,
+    maxHp,
+    isAlive,
+    streaks,
+    survivalMultiplier,
+    dopamineIndex,
+    audioState,
+    checkIn,
+    reconnect,
+    cycleAudioState,
+    claimable,
+    userEmissionRate,
+    userItems,
+    userNonce
+  } = useGameStore();
   const { config: decorationConfig, isLoading: isDecorationLoading, layerOverrides, handleLayerClick, setLayerOverride, clearLayerOverride } = useDecorationStore();
   const [bottomScale, setBottomScale] = useState(1);
   const [topScale, setTopScale] = useState(1);
@@ -624,7 +639,7 @@ export default function Home() {
           {/* Unconnected Overlay */}
           {!hasAccess && (
             <div className="absolute inset-0 z-40">
-              <UnconnectedScreen language={language} onLogin={login} />
+              <UnconnectedScreen onLogin={login} />
               {isLoggingIn && (
                 <div className="absolute inset-0 z-50 bg-black/80 flex flex-col items-center justify-center">
                   <div className="w-16 h-16 border-4 border-[#00ff41]/30 border-t-[#00ff41] rounded-full animate-spin mb-4" />
@@ -708,7 +723,6 @@ export default function Home() {
                     survivalDays={streaks}
                     survivalMultiplier={survivalMultiplier}
                     dopamineIndex={dopamineIndex}
-                    language={language}
                   />
                 </div>
 
@@ -729,7 +743,7 @@ export default function Home() {
 
                       {/* 语言切换按钮 */}
                       <motion.button
-                        onClick={() => setLanguage(language === 'en' ? 'cn' : 'en')}
+                        onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'zh' : 'en')}
                         className="w-8 h-8 rounded-lg bg-black/40 hover:bg-[#00ff41]/20 flex items-center justify-center backdrop-blur-sm group transition-colors"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -827,7 +841,7 @@ export default function Home() {
                   }}
                   className="text-[#00ff41] hover:text-white underline font-mono text-[11px] md:text-xs transition-colors flex items-center gap-1"
                 >
-                  {language === 'en' ? 'Invite your friends!' : '邀请你的朋友！'}
+                  {t('invite.shortPromo')}
                 </button>
               </div>
             </div>

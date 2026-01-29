@@ -8,11 +8,10 @@ import { formatTokenCount } from '@/utils/format';
 import { useTranslation } from 'react-i18next';
 
 interface UnconnectedScreenProps {
-  language?: 'en' | 'cn';
   onLogin?: () => void;
 }
 
-export function UnconnectedScreen({ language = 'en', onLogin }: UnconnectedScreenProps) {
+export function UnconnectedScreen({ onLogin }: UnconnectedScreenProps) {
   const { t } = useTranslation();
   const { data: globalStats } = useSWR<DashboardSummaryResponse>('/dashboard/summary', fetcher, {
     refreshInterval: 30000
@@ -137,9 +136,7 @@ export function UnconnectedScreen({ language = 'en', onLogin }: UnconnectedScree
             {/* 副标题 */}
             <div className="text-center space-y-2">
               <p className="text-[#00ff41] font-mono text-base md:text-lg leading-relaxed">
-                {language === 'en'
-                  ? t('unconnected.startProtocol')
-                  : t('unconnected.startProtocol')}
+                {t('unconnected.startProtocol')}
               </p>
             </div>
 
@@ -314,9 +311,7 @@ export function UnconnectedScreen({ language = 'en', onLogin }: UnconnectedScree
             {/* 底部提示 */}
             <div className="border-t border-gray-800 pt-4">
               <p className="text-gray-600 font-mono text-xs text-center leading-relaxed">
-                {language === 'en'
-                  ? '// Lives are lost every minute'
-                  : t('unconnected.livesLost')}
+                {t('unconnected.livesLost')}
               </p>
             </div>
           </div>

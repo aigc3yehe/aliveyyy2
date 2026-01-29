@@ -22,7 +22,7 @@ interface ClaimModalProps {
 }
 
 export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
-  const { claimable, dopamineIndex, claimRewards, language } = useGameStore(); // userNonce removed as not used directly here anymore
+  const { claimable, dopamineIndex, claimRewards } = useGameStore(); // userNonce removed as not used directly here anymore
   const { t } = useTranslation();
   const [claimState, setClaimState] = useState<'initial' | 'loading' | 'success'>('initial');
   const [claimedAmount, setClaimedAmount] = useState(0);
@@ -202,8 +202,8 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
                   <p className="text-gray-600 font-mono text-xs text-center mt-1">
                     {t('claim.tip')}
                   </p>
-                   <p className="text-amber-500/80 font-mono text-xs text-center mt-2 font-bold underline decoration-dotted underline-offset-2">
-                    {language === 'en' ? '>> Invite friends! Earn BNB rewards! <<' : '>> 邀请你的朋友加入！获得BNB奖励！ <<'}
+                  <p className="text-amber-500/80 font-mono text-xs text-center mt-2 font-bold underline decoration-dotted underline-offset-2">
+                    {t('invite.earnBnb')}
                   </p>
                 </div>
               </div>
@@ -307,10 +307,10 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
           )}
         </>
       )}
-      
+
       {/* Invite Share Modal */}
-      <InviteShareModal 
-        isOpen={showInviteModal} 
+      <InviteShareModal
+        isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
       />
     </AnimatePresence>

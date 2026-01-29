@@ -8,7 +8,6 @@ interface StatsIndicatorsProps {
   survivalDays: number;
   survivalMultiplier: number;
   dopamineIndex: number;
-  language?: 'en' | 'cn';
 }
 
 import { useTranslation } from 'react-i18next';
@@ -18,7 +17,6 @@ export function StatsIndicators({
   survivalDays,
   survivalMultiplier,
   dopamineIndex,
-  language = 'en',
 }: StatsIndicatorsProps) {
   const { t } = useTranslation();
   const [activePopup, setActivePopup] = useState<string | null>(null);
@@ -74,16 +72,16 @@ export function StatsIndicators({
             className="w-full mt-2 bg-gradient-to-r from-amber-500/20 to-amber-600/20 border border-amber-500/50 hover:bg-amber-500/30 text-amber-500 py-2 rounded font-mono text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 group"
           >
             <span className="text-lg group-hover:scale-110 transition-transform">👑</span>
-            {language === 'en' ? 'Invite & Earn!' : '邀请并获得多巴胺！'}
+            {t('invite.button')}
           </button>
-           <p 
+          <p
             onClick={() => {
-               setActivePopup(null);
-               setShowInviteModal(true);
+              setActivePopup(null);
+              setShowInviteModal(true);
             }}
             className="text-amber-500/80 font-mono text-[10px] text-center mt-3 font-bold underline decoration-dotted underline-offset-2 cursor-pointer hover:text-amber-400"
           >
-            {language === 'en' ? '>> Invite friends! Earn extra Dopamine! <<' : '>> 邀请你的朋友加入！获得额外多巴胺！ <<'}
+            {t('invite.earnDopamine')}
           </p>
         </>
       );
@@ -221,8 +219,8 @@ export function StatsIndicators({
       )}
 
       {/* Invite Share Modal */}
-      <InviteShareModal 
-        isOpen={showInviteModal} 
+      <InviteShareModal
+        isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
       />
     </>

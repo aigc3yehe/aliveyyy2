@@ -8,6 +8,7 @@ import { useGameStore, ShopItem } from '@/app/stores/useGameStore';
 import { useUserGameData } from '@/app/hooks/useUserGameData';
 import { api, fetcher } from '@/services/api';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -23,7 +24,8 @@ import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95c
 import { formatTokenCount } from '@/utils/format';
 
 export default function Store() {
-  const { tokenBalance, buyItem, language, userItems } = useGameStore();
+  const { tokenBalance, buyItem, userItems } = useGameStore();
+  const { t } = useTranslation();
   const { data: walletClient } = useWalletClient();
   const { address } = useAccount();
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
@@ -62,13 +64,13 @@ export default function Store() {
       setIsPurchasing(true);
       await buyItem(selectedItem, walletClient);
 
-      toast.success(language === 'en' ? 'Purchase Successful!' : '购买成功！', {
-        description: language === 'en' ? `You obtained ${selectedItem.name}` : `你获得了 ${selectedItem.name}`,
+      toast.success(t('store.purchaseSuccess'), {
+        description: t('store.purchaseSuccessDesc', { name: selectedItem.name }),
       });
       setIsDialogOpen(false);
     } catch (error: any) {
       console.error('Purchase error:', error);
-      toast.error(language === 'en' ? 'Purchase Failed' : '购买失败', {
+      toast.error(t('store.purchaseFailed'), {
         description: error.message || 'Transaction failed'
       });
     } finally {
@@ -78,8 +80,8 @@ export default function Store() {
 
   const handleManualClaim = async () => {
     if (!manualClaimCode || !manualClaimHash) {
-      toast.error(language === 'en' ? 'Missing Information' : '缺少信息', {
-        description: language === 'en' ? 'Please select an item and enter transaction hash' : '请选择商品并输入交易哈希'
+      toast.error(t('store.missingInfo'), {
+        description: t('store.missingInfoDesc')
       });
       return;
     }
@@ -103,8 +105,8 @@ export default function Store() {
         ]);
       }
 
-      toast.success(language === 'en' ? 'Claim Successful!' : '取回成功！', {
-        description: language === 'en' ? 'Item has been added to your inventory' : '物品已添加到您的背包'
+      toast.success(t('store.claimSuccess'), {
+        description: t('store.claimSuccessDesc')
       });
       setIsManualDialogOpen(false);
 
@@ -115,7 +117,7 @@ export default function Store() {
 
     } catch (error: any) {
       console.error('Manual claim error:', error);
-      toast.error(language === 'en' ? 'Claim Failed' : '取回失败', {
+      toast.error(t('store.claimFailed'), {
         description: error.response?.data?.message || 'Verification failed'
       });
     } finally {
@@ -185,7 +187,7 @@ export default function Store() {
               >
                 <ArrowLeft className="w-5 h-5 text-[#00ff41]" />
                 <span className="text-[#00ff41] font-mono text-sm">
-                  {language === 'en' ? 'RETURN' : '返回游戏'}
+                  {t('common.return')}
                 </span>
               </motion.button>
             </Link>
@@ -201,10 +203,10 @@ export default function Store() {
                   transition={{ duration: 0.5 }}
                 >
                   <h1 className="text-[#00ff41] font-mono text-3xl mb-2 tracking-wider">
-                    {'>'} {language === 'en' ? 'SUPPLY_DEPOT' : '物资补给站'}
+                    {'>'} {t('store.title')}
                   </h1>
                   <p className="text-gray-400 font-mono text-sm">
-                    // {language === 'en' ? 'Exchange $活着呢 for supplies' : '使用 $活着呢 代币兑换生存物资'}
+                    // {t('store.desc')}
                   </p>
                 </motion.div>
 
@@ -217,7 +219,7 @@ export default function Store() {
                 >
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">
-                      {language === 'en' ? 'BALANCE:' : '余额:'}
+                      {t('common.balance')}
                     </span>
                     <motion.span
                       className="text-[#00ff41] text-xl font-bold"
@@ -293,10 +295,10 @@ export default function Store() {
                 transition={{ duration: 0.5, delay: 0.5 }}
               >
                 <p className="text-gray-500 font-mono text-xs text-center">
-                  // {language === 'en' ? 'WARNING: ALL TRANSACTIONS IRREVERSIBLE' : '警告: 所有交易不可逆转'}
+                  // {t('store.warningTrans')}
                 </p>
                 <p className="text-gray-600 font-mono text-xs text-center mt-1">
-                  // {language === 'en' ? 'STATUS: ONLINE | NETWORK: SECURE' : '状态: 在线 | 网络: 安全'}
+                  // {t('store.statusOnline')}
                 </p>
               </motion.div>
             </div>
@@ -312,13 +314,13 @@ export default function Store() {
         <DialogContent className="border-[#00ff41] bg-black text-[#00ff41] font-mono max-w-[90vw] w-80 sm:w-96 rounded-none border-2">
           <DialogHeader>
             <DialogTitle className="text-xl border-b border-[#00ff41]/30 pb-2">
-              {language === 'en' ? 'CONFIRM_PURCHASE' : '确认购买'}
+              {t('store.confirmPurchase')}
             </DialogTitle>
             <DialogDescription className="text-gray-400 pt-2">
-              {language === 'en' ? 'Authorize transaction?' : '是否授权此交易?'}
+              {t('store.authorizeTrans')}
               {selectedItem?.maxQuantity && (
                 <span className="block text-[#00ff41] text-xs mt-1">
-                  {language === 'en' ? `Limit: ${selectedItem.maxQuantity}` : `限购: ${selectedItem.maxQuantity}`}
+                  {t('store.limit', { count: selectedItem.maxQuantity })}
                 </span>
               )}
             </DialogDescription>
@@ -356,7 +358,7 @@ export default function Store() {
 
               <div className="flex justify-between items-center text-xs text-gray-400 pl-1">
                 <div className="flex items-center gap-1">
-                  <span>{language === 'en' ? 'YOU OWN:' : '当前拥有:'}</span>
+                  <span>{t('store.youOwn')}</span>
                   <span className="text-[#00ff41] font-bold">
                     {userItems.find(i => i.code === selectedItem.code)?.quantity || 0}
                   </span>
@@ -367,7 +369,7 @@ export default function Store() {
                     setIsManualDialogOpen(true);
                   }}
                   className="flex items-center gap-1 text-[#00ff41]/50 hover:text-[#00ff41] transition-colors cursor-pointer"
-                  title={language === 'en' ? 'Manual Retrieve' : '自助取回'}
+                  title={t('store.manualRetrieve')}
                 >
                   <CircleHelp className="w-4 h-4" />
                 </button>
@@ -381,7 +383,7 @@ export default function Store() {
               className="bg-black border-[#00ff41]/50 text-[#00ff41] hover:bg-[#00ff41]/10 hover:text-[#00ff41] rounded-none w-full sm:w-auto"
               onClick={() => setIsDialogOpen(false)}
             >
-              {language === 'en' ? 'CANCEL' : '取消'}
+              {t('common.cancel')}
             </Button>
             <Button
               className="bg-[#00ff41] text-black hover:bg-[#00ff41]/80 rounded-none font-bold w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
@@ -389,10 +391,10 @@ export default function Store() {
               disabled={isPurchasing || (selectedItem ? (userItems.find(i => i.code === selectedItem.code)?.quantity ?? 0) >= (selectedItem.maxQuantity ?? Infinity) : false)}
             >
               {isPurchasing
-                ? (language === 'en' ? 'PURCHASING...' : '购买中...')
+                ? t('store.purchasing')
                 : (selectedItem && (userItems.find(i => i.code === selectedItem.code)?.quantity ?? 0) >= (selectedItem.maxQuantity ?? Infinity))
-                  ? (language === 'en' ? 'LIMIT REACHED' : '已达上限')
-                  : (language === 'en' ? 'CONFIRM' : '确认')
+                  ? t('store.limitReached')
+                  : t('common.confirm')
               }
             </Button>
           </DialogFooter>
@@ -403,25 +405,23 @@ export default function Store() {
         <DialogContent className="border-[#00ff41] bg-black text-[#00ff41] font-mono max-w-[90vw] w-80 sm:w-96 rounded-none border-2">
           <DialogHeader>
             <DialogTitle className="text-xl border-b border-[#00ff41]/30 pb-2">
-              {language === 'en' ? 'MANUAL RETRIEVE' : '自助取回'}
+              {t('store.manualRetrieveButton')}
             </DialogTitle>
             <DialogDescription className="text-gray-400 pt-2 text-xs">
-              {language === 'en'
-                ? 'Use this if transaction succeeded but item was not received.'
-                : '如果交易成功但未收到物品，请使用此功能。'}
+              {t('store.manualRetrieveDesc')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="py-4 space-y-4">
             <div className="space-y-2">
-              <label className="text-xs text-gray-400">{language === 'en' ? 'Item' : '物品'}</label>
+              <label className="text-xs text-gray-400">{t('common.item')}</label>
               <div className="bg-black border border-[#00ff41]/50 text-[#00ff41] px-3 py-2 text-sm font-bold">
                 {items.find(i => i.code === manualClaimCode)?.name || manualClaimCode}
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs text-gray-400">{language === 'en' ? 'Quantity' : '数量'}</label>
+              <label className="text-xs text-gray-400">{t('common.quantity')}</label>
               <Input
                 type="number"
                 value={manualClaimQuantity}
@@ -432,7 +432,7 @@ export default function Store() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs text-gray-400">{language === 'en' ? 'Transaction Hash' : '交易哈希 (TxHash)'}</label>
+              <label className="text-xs text-gray-400">{t('store.transactionHash')}</label>
               <Input
                 value={manualClaimHash}
                 onChange={(e) => setManualClaimHash(e.target.value)}
@@ -448,14 +448,14 @@ export default function Store() {
               className="bg-black border-[#00ff41]/50 text-[#00ff41] hover:bg-[#00ff41]/10 hover:text-[#00ff41] rounded-none w-full sm:w-auto"
               onClick={() => setIsManualDialogOpen(false)}
             >
-              {language === 'en' ? 'CANCEL' : '取消'}
+              {t('common.cancel')}
             </Button>
             <Button
               className="bg-[#00ff41] text-black hover:bg-[#00ff41]/80 rounded-none font-bold w-full sm:w-auto"
               onClick={handleManualClaim}
               disabled={isManualClaiming}
             >
-              {isManualClaiming ? (language === 'en' ? 'VERIFYING...' : '验证中...') : (language === 'en' ? 'CONFIRM' : '确认')}
+              {isManualClaiming ? t('store.verifying') : t('common.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

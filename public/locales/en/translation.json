@@ -5,6 +5,51 @@
         "authenticating": "Authenticating...",
         "wrongNetwork": "Wrong Network. Click to switch to BSC."
     },
+    "common": {
+        "return": "RETURN",
+        "cancel": "CANCEL",
+        "confirm": "CONFIRM",
+        "quantity": "Quantity",
+        "item": "Item",
+        "balance": "BALANCE:"
+    },
+    "store": {
+        "title": "SUPPLY_DEPOT",
+        "desc": "Exchange $活着呢 for supplies",
+        "warningTrans": "WARNING: ALL TRANSACTIONS IRREVERSIBLE",
+        "statusOnline": "STATUS: ONLINE | NETWORK: SECURE",
+        "purchaseSuccess": "Purchase Successful!",
+        "purchaseSuccessDesc": "You obtained {{name}}",
+        "purchaseFailed": "Purchase Failed",
+        "missingInfo": "Missing Information",
+        "missingInfoDesc": "Please select an item and enter transaction hash",
+        "claimSuccess": "Claim Successful!",
+        "claimSuccessDesc": "Item has been added to your inventory",
+        "claimFailed": "Claim Failed",
+        "confirmPurchase": "CONFIRM_PURCHASE",
+        "authorizeTrans": "Authorize transaction?",
+        "limit": "Limit: {{count}}",
+        "youOwn": "YOU OWN:",
+        "manualRetrieve": "Manual Retrieve",
+        "manualRetrieveButton": "MANUAL RETRIEVE",
+        "purchasing": "PURCHASING...",
+        "limitReached": "LIMIT REACHED",
+        "verifying": "VERIFYING...",
+        "transactionHash": "Transaction Hash",
+        "manualRetrieveDesc": "Use this if transaction succeeded but item was not received."
+    },
+    "leaderboard": {
+        "title": "SURVIVOR_RANKING",
+        "subtitle": "ULTIMATE SURVIVOR DATABASE",
+        "yourStatus": "YOUR_STATUS",
+        "streak": "STREAK:",
+        "days": "DAYS",
+        "bonus": "BONUS:",
+        "address": "ADDRESS",
+        "totalInvites": "Total Invites",
+        "inviteDetail": "(Direct) / {{indirect}} (Indirect)",
+        "maintainStreak": "Maintain streak to rank up"
+    },
     "home": {
         "wrongNetwork": "Wrong Network. Click to switch to BSC.",
         "connectionLost": "CONNECTION LOST",
@@ -146,5 +191,18 @@
         "promo": "Directly invite friends to earn 33% of the activation BNB fee, and indirectly invite friends to earn 13%.",
         "copy": "COPY",
         "viewDetails": "View Invite Details"
+    },
+    "invite": {
+        "shortPromo": "Invite your friends!",
+        "earnDopamine": ">> Invite friends! Earn extra Dopamine! <<",
+        "earnBnb": ">> Invite friends! Earn BNB rewards! <<",
+        "button": "Invite & Earn!"
+    },
+    "inviteList": {
+        "title": "INVITATION LOG",
+        "directInvites": "DIRECT INVITES ({{count}})",
+        "indirectInvites": "INDIRECT INVITES ({{count}})",
+        "noDirect": "No direct invites yet",
+        "noIndirect": "No indirect invites yet"
     }
 }

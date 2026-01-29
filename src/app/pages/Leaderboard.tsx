@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 import { ArrowLeft, TrendingUp, Loader2 } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { useGameStore, LeaderboardEntry } from '@/app/stores/useGameStore';
+import { useTranslation } from 'react-i18next';
 import { useUserGameData } from '@/app/hooks/useUserGameData';
 import { fetcher } from '@/services/api';
 import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95cdb7a89980e1a1c18de7.webp';
@@ -24,7 +25,8 @@ interface LeaderboardDisplayItem {
 
 export default function Leaderboard() {
   const { address } = useAccount();
-  const { hp, streaks, survivalMultiplier, language } = useGameStore();
+  const { hp, streaks, survivalMultiplier } = useGameStore();
+  const { t } = useTranslation();
 
   // Use new SWR hook for user data syncing
   useUserGameData(address);
@@ -127,7 +129,7 @@ export default function Leaderboard() {
               >
                 <ArrowLeft className="w-5 h-5 text-[#00ff41]" />
                 <span className="text-[#00ff41] font-mono text-sm">
-                  {language === 'en' ? 'RETURN' : '返回游戏'}
+                  {t('common.return')}
                 </span>
               </motion.button>
             </Link>
@@ -143,10 +145,10 @@ export default function Leaderboard() {
                   transition={{ duration: 0.5 }}
                 >
                   <h1 className="text-[#00ff41] font-mono text-3xl mb-2 tracking-wider">
-                    {'>'} {language === 'en' ? 'SURVIVOR_RANKING' : '生存者排行榜'}
+                    {'>'} {t('leaderboard.title')}
                   </h1>
                   <p className="text-gray-400 font-mono text-sm">
-                    // {language === 'en' ? 'ULTIMATE SURVIVOR DATABASE' : '最强生存者数据库'}
+                    // {t('leaderboard.subtitle')}
                   </p>
                 </motion.div>
 
@@ -158,7 +160,7 @@ export default function Leaderboard() {
                   transition={{ duration: 0.5, delay: 0.1 }}
                 >
                   <div className="text-gray-400 text-xs mb-2">
-                    [ {language === 'en' ? 'YOUR_STATUS' : '你的状态'} ]
+                    [ {t('leaderboard.yourStatus')} ]
                   </div>
                   {/* Status Grid - Back to 3 columns */}
                   <div className="grid grid-cols-3 gap-4 mb-4">
@@ -176,7 +178,7 @@ export default function Leaderboard() {
                     </div>
                     <div>
                       <div className="text-gray-500 text-xs mb-1">
-                        {language === 'en' ? 'STREAK:' : '天数:'}
+                        {t('leaderboard.streak')}
                       </div>
                       <motion.div
                         className="text-[#00ff41] text-lg font-bold"
@@ -190,7 +192,7 @@ export default function Leaderboard() {
                     </div>
                     <div>
                       <div className="text-gray-500 text-xs mb-1">
-                        {language === 'en' ? 'BONUS:' : '加成:'}
+                        {t('leaderboard.bonus')}
                       </div>
                       <motion.div
                         className="text-[#00ff41] text-lg font-bold"
@@ -215,7 +217,7 @@ export default function Leaderboard() {
                       </div>
                       <div>
                         <div className="text-amber-500/80 text-[10px] uppercase font-bold tracking-wider mb-0.5">
-                          {language === 'en' ? 'Total Invites' : '累计邀请'}
+                          {t('leaderboard.totalInvites')}
                         </div>
                         <motion.div
                           className="text-amber-400 font-bold font-mono leading-none flex items-center gap-2"
@@ -228,7 +230,7 @@ export default function Leaderboard() {
                             <>
                               <span className="text-lg">{directInvites}</span>
                               <span className="text-[10px] text-amber-500/60 font-medium">
-                                {language === 'en' ? `(Direct) / ${indirectInvites} (Indirect)` : `(直推) / ${indirectInvites} (间接)`}
+                                {t('leaderboard.inviteDetail', { indirect: indirectInvites })}
                               </span>
                             </>
                           )}
@@ -258,14 +260,14 @@ export default function Leaderboard() {
                 <div className="grid grid-cols-5 gap-2 p-3 bg-black border-b border-[#00ff41]/30">
                   <div className="text-[#00ff41] font-mono text-xs">#</div>
                   <div className="text-[#00ff41] font-mono text-xs">
-                    {language === 'en' ? 'ADDRESS' : '地址'}
+                    {t('leaderboard.address')}
                   </div>
                   <div className="text-[#00ff41] font-mono text-xs text-center">HP</div>
                   <div className="text-[#00ff41] font-mono text-xs text-center">
-                    {language === 'en' ? 'DAYS' : '天数'}
+                    {t('leaderboard.days')}
                   </div>
                   <div className="text-[#00ff41] font-mono text-xs text-right">
-                    {language === 'en' ? 'BONUS' : '加成'}
+                    {t('leaderboard.bonus').replace(':', '')}
                   </div>
                 </div>
 
@@ -328,7 +330,7 @@ export default function Leaderboard() {
               >
 
                 <p className="text-gray-600 font-mono text-xs text-center mt-1">
-                  // {language === 'en' ? 'Maintain streak to rank up' : '保持连续签到以提升排名'}
+                  // {t('leaderboard.maintainStreak')}
                 </p>
 
               </motion.div>
