@@ -5,6 +5,51 @@
         "authenticating": "正在验证身份...",
         "wrongNetwork": "网络错误，点击切换到 BSC 网络"
     },
+    "common": {
+        "return": "返回游戏",
+        "cancel": "取消",
+        "confirm": "确认",
+        "quantity": "数量",
+        "item": "物品",
+        "balance": "余额:"
+    },
+    "store": {
+        "title": "物资补给站",
+        "desc": "使用 $活着呢 代币兑换生存物资",
+        "warningTrans": "警告: 所有交易不可逆转",
+        "statusOnline": "状态: 在线 | 网络: 安全",
+        "purchaseSuccess": "购买成功！",
+        "purchaseSuccessDesc": "你获得了 {{name}}",
+        "purchaseFailed": "购买失败",
+        "missingInfo": "缺少信息",
+        "missingInfoDesc": "请选择商品并输入交易哈希",
+        "claimSuccess": "取回成功！",
+        "claimSuccessDesc": "物品已添加到您的背包",
+        "claimFailed": "取回失败",
+        "confirmPurchase": "确认购买",
+        "authorizeTrans": "是否授权此交易?",
+        "limit": "限购: {{count}}",
+        "youOwn": "当前拥有:",
+        "manualRetrieve": "自助取回",
+        "manualRetrieveButton": "自助取回",
+        "purchasing": "购买中...",
+        "limitReached": "已达上限",
+        "verifying": "验证中...",
+        "transactionHash": "交易哈希 (TxHash)",
+        "manualRetrieveDesc": "如果交易成功但未收到物品，请使用此功能。"
+    },
+    "leaderboard": {
+        "title": "生存者排行榜",
+        "subtitle": "最强生存者数据库",
+        "yourStatus": "你的状态",
+        "streak": "天数:",
+        "days": "天数",
+        "bonus": "加成:",
+        "address": "地址",
+        "totalInvites": "累计邀请",
+        "inviteDetail": "(直推) / {{indirect}} (间接)",
+        "maintainStreak": "保持连续签到以提升排名"
+    },
     "home": {
         "wrongNetwork": "网络错误，点击切换到 BSC 网络",
         "connectionLost": "信号丢失",
@@ -146,5 +191,18 @@
         "promo": "直接邀请朋友赚取 33% 的激活BNB费用，间接邀请朋友赚取 13% 的激活BNB费用。",
         "copy": "复制",
         "viewDetails": "查看邀请信息"
+    },
+    "invite": {
+        "shortPromo": "邀请你的朋友！",
+        "earnDopamine": ">> 邀请你的朋友加入！获得额外多巴胺！ <<",
+        "earnBnb": ">> 邀请你的朋友加入！获得BNB奖励！ <<",
+        "button": "邀请并获得多巴胺！"
+    },
+    "inviteList": {
+        "title": "邀请记录",
+        "directInvites": "直接邀请 ({{count}})",
+        "indirectInvites": "间接邀请 ({{count}})",
+        "noDirect": "暂无直接邀请",
+        "noIndirect": "暂无间接邀请"
     }
 }

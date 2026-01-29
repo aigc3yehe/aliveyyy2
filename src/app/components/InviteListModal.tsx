@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { useGameStore } from '@/app/stores/useGameStore';
+import { useTranslation } from 'react-i18next';
 import { useAccount } from 'wagmi';
 import { useReferralList } from '@/app/hooks/useReferralData';
 import { Loader2 } from 'lucide-react';
@@ -17,7 +17,7 @@ const truncateAddress = (address: string) => {
 };
 
 export function InviteListModal({ isOpen, onClose }: InviteListModalProps) {
-  const { language } = useGameStore();
+  const { t } = useTranslation();
   const { address } = useAccount();
 
   // Fetch referral lists from subgraph using custom hook
@@ -43,7 +43,7 @@ export function InviteListModal({ isOpen, onClose }: InviteListModalProps) {
             {/* Header */}
             <div className="p-4 border-b border-[#00ff41]/30 flex items-center justify-between bg-[#00ff41]/5">
               <h3 className="text-[#00ff41] font-mono text-lg font-bold">
-                {language === 'en' ? 'INVITATION LOG' : '邀请记录'}
+                {t('inviteList.title')}
               </h3>
               <button
                 onClick={onClose}
@@ -64,11 +64,11 @@ export function InviteListModal({ isOpen, onClose }: InviteListModalProps) {
                   {/* Level 1 Section */}
                   <div className="mb-4">
                     <div className="px-2 py-2 text-xs text-[#00ff41] font-mono font-bold border-b border-[#00ff41]/20 mb-2">
-                      {language === 'en' ? `DIRECT INVITES (${level1Referrals.length})` : `直接邀请 (${level1Referrals.length})`}
+                      {t('inviteList.directInvites', { count: level1Referrals.length })}
                     </div>
                     {level1Referrals.length === 0 ? (
                       <p className="text-gray-500 text-sm text-center py-4 font-mono">
-                        {language === 'en' ? 'No direct invites yet' : '暂无直接邀请'}
+                        {t('inviteList.noDirect')}
                       </p>
                     ) : (
                       level1Referrals.map((item) => (
@@ -85,11 +85,11 @@ export function InviteListModal({ isOpen, onClose }: InviteListModalProps) {
                   {/* Level 2 Section */}
                   <div>
                     <div className="px-2 py-2 text-xs text-amber-500 font-mono font-bold border-b border-amber-500/20 mb-2">
-                      {language === 'en' ? `INDIRECT INVITES (${level2Referrals.length})` : `间接邀请 (${level2Referrals.length})`}
+                      {t('inviteList.indirectInvites', { count: level2Referrals.length })}
                     </div>
                     {level2Referrals.length === 0 ? (
                       <p className="text-gray-500 text-sm text-center py-4 font-mono">
-                        {language === 'en' ? 'No indirect invites yet' : '暂无间接邀请'}
+                        {t('inviteList.noIndirect')}
                       </p>
                     ) : (
                       level2Referrals.map((item) => (
@@ -109,9 +109,7 @@ export function InviteListModal({ isOpen, onClose }: InviteListModalProps) {
             {/* Footer */}
             <div className="p-3 border-t border-[#00ff41]/30 bg-[#00ff41]/5 text-center">
               <p className="text-[10px] text-[#00ff41]/60 font-mono leading-relaxed px-2">
-                {language === 'en'
-                  ? 'Directly invite friends to earn 33% of the activation BNB fee, and indirectly invite friends to earn 13%.'
-                  : '直接邀请朋友赚取 33% 的激活BNB费用，间接邀请朋友赚取 13% 的激活BNB费用。'}
+                {t('inviteShareModal.promo')}
               </p>
             </div>
 
