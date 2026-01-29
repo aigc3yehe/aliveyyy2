@@ -10,8 +10,8 @@ import { useTranslation } from 'react-i18next';
 
 export const ActivationModal = memo(function ActivationModal() {
   const isAccountActivated = useGameStore(state => state.isAccountActivated);
+  const isActivationChecked = useGameStore(state => state.isActivationChecked);
   const activateAccount = useGameStore(state => state.activateAccount);
-  const language = useGameStore(state => state.language);
   const globalStats = useGameStore(state => state.globalStats);
 
   const { t } = useTranslation();
@@ -21,10 +21,12 @@ export const ActivationModal = memo(function ActivationModal() {
   const inviteCode = searchParams.get('invite');
 
   // Debug log
-  console.log('ActivationModal render:', { isAccountActivated, inviteCode });
+  console.log('ActivationModal render:', { isAccountActivated, isActivationChecked, inviteCode });
 
-  // If already activated, don't show anything
-  if (isAccountActivated) return null;
+  // Don't show modal if:
+  // 1. User is already activated (from cache or backend)
+  // 2. Backend hasn't responded yet (to prevent flash)
+  if (isAccountActivated || !isActivationChecked) return null;
 
   const handleActivation = async () => {
     setIsActivating(true);

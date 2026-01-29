@@ -45,6 +45,29 @@ export interface ShopItem {
   }[];
 }
 
+// Helper to get cached activation status for an address
+const getActivationCache = (address: string): boolean | null => {
+  try {
+    const cache = localStorage.getItem(`alive_activated_${address.toLowerCase()}`);
+    return cache === 'true' ? true : null;
+  } catch {
+    return null;
+  }
+};
+
+// Helper to set cached activation status
+const setActivationCache = (address: string, activated: boolean) => {
+  try {
+    if (activated) {
+      localStorage.setItem(`alive_activated_${address.toLowerCase()}`, 'true');
+    } else {
+      localStorage.removeItem(`alive_activated_${address.toLowerCase()}`);
+    }
+  } catch {
+    // Ignore localStorage errors
+  }
+};
+
 interface GameState {
   hp: number;
   maxHp: number;
@@ -67,6 +90,7 @@ interface GameState {
   tokenBalance: string;
   userNonce: number;
   isAccountActivated: boolean; // PROTOTYPE: Check if user has paid activation fee
+  isActivationChecked: boolean; // Whether backend has returned activation status
 
 
   setHp: (hp: number) => void;
@@ -124,7 +148,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   userItems: [],
   tokenBalance: '0',
   userNonce: 0,
-  isAccountActivated: false, // Default to false for prototype demo
+  isAccountActivated: false, // Default to false, will be updated from cache or backend
+  isActivationChecked: false, // Will be set true once backend returns status
 
 
   setHp: (hp) => set({ hp }),
@@ -306,7 +331,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         hp: userData.hp,
         maxHp: userData.maxHp,
         isAlive: userData.status === 'ALIVE',
-        isAccountActivated: userData.activated, // Sync activation status
+        isAccountActivated: userData.activated,
+        isActivationChecked: true,
         streaks: userData.consecutiveCheckinDays,
         // Update user items to reflect consumed defibrillator if applicable
         userItems: userData.items || get().userItems,
@@ -368,7 +394,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         const userData = response.data.data;
 
         // Update local state
-        set({ isAccountActivated: userData.activated });
+        set({ isAccountActivated: userData.activated, isActivationChecked: true });
+        // Cache the activation status
+        if (currentAddress && userData.activated) {
+          setActivationCache(currentAddress, true);
+        }
       } else {
         // Fallback strictly for UI if address is somehow missing (unlikely)
         set({ isAccountActivated: true });

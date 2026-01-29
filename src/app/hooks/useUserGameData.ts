@@ -7,6 +7,27 @@ import { config } from '@/config/wagmi';
 import AliveClaimABI from '@/abis/AliveClaim.json';
 import { erc20Abi, formatEther } from 'viem';
 
+// Helper to read activation cache
+const getActivationCache = (address: string): boolean | null => {
+    try {
+        const cache = localStorage.getItem(`alive_activated_${address.toLowerCase()}`);
+        return cache === 'true' ? true : null;
+    } catch {
+        return null;
+    }
+};
+
+// Helper to write activation cache
+const setActivationCache = (address: string, activated: boolean) => {
+    try {
+        if (activated) {
+            localStorage.setItem(`alive_activated_${address.toLowerCase()}`, 'true');
+        }
+    } catch {
+        // Ignore localStorage errors
+    }
+};
+
 // Fetcher for User Status + Dashboard Summary
 const userStatusFetcher = async ([_, address]: [string, string]) => {
     if (!address) return null;
@@ -96,6 +117,17 @@ export function useUserGameData(address?: string) {
 
     const store = useGameStore();
 
+    // Initialize activation state from localStorage cache on address change
+    useEffect(() => {
+        if (address) {
+            const cached = getActivationCache(address);
+            if (cached === true) {
+                // Pre-set activated state from cache to prevent modal flash
+                useGameStore.setState({ isAccountActivated: true });
+            }
+        }
+    }, [address]);
+
     // 1. Main User Status SWR
     const { data: statusData, error: statusError, mutate: mutateUserStatus } = useSWR(
         address ? ['/user-game-status', address] : null,
@@ -120,6 +152,11 @@ export function useUserGameData(address?: string) {
         if (statusData) {
             const { userData, dashboardData, calculated } = statusData;
 
+            // Cache activation status if user is activated
+            if (userData.activated && statusData.userData.address) {
+                setActivationCache(statusData.userData.address, true);
+            }
+
             useGameStore.setState({
                 hp: userData.hp,
                 maxHp: userData.maxHp,
@@ -133,13 +170,10 @@ export function useUserGameData(address?: string) {
                 userItems: userData.items || [],
                 userNonce: calculated.userNonce,
                 globalStats: dashboardData,
-                isAccountActivated: userData.activated, // Sync activation status
-                // Reset tick time to avoid massive jumps effectively? 
-                // Or keep it flowing. If we update base 'claimable', we might want to reset tick time 
-                // to now if the backend value is "current". 
-                // Usually backend returns snapshot at T. 
-                lastTickTime: Date.now(), // Reset tick base
-                lastCheckInTime: Date.now() / 1000 // Approximate, mostly for UI relative time
+                isAccountActivated: userData.activated,
+                isActivationChecked: true, // Mark that backend has responded
+                lastTickTime: Date.now(),
+                lastCheckInTime: Date.now() / 1000
             });
         }
     }, [statusData]);
