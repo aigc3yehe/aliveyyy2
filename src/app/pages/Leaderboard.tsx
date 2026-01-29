@@ -8,8 +8,7 @@ import { useGameStore, LeaderboardEntry } from '@/app/stores/useGameStore';
 import { useUserGameData } from '@/app/hooks/useUserGameData';
 import { fetcher } from '@/services/api';
 import imgFe494Eac1A744C06A8Dd40208Ae38Bdf5 from '@/assets/931f8f55564bd4e3bd95cdb7a89980e1a1c18de7.webp';
-import { useQuery } from 'urql';
-import { GET_USER_REFERRAL_STATS, ReferralStatsData } from '@/services/referralQueries';
+import { useReferralStats } from '@/app/hooks/useReferralData';
 
 import { InviteShareModal } from '@/app/components/InviteShareModal';
 
@@ -33,15 +32,8 @@ export default function Leaderboard() {
   // Use SWR for fetching leaderboard
   const { data: rawLeaderboardData } = useSWR<LeaderboardEntry[]>('/dashboard/leaderboard?sortBy=rewardWeight', fetcher);
 
-  // Fetch referral stats from subgraph
-  const [{ data: referralData, fetching: referralFetching }] = useQuery<ReferralStatsData>({
-    query: GET_USER_REFERRAL_STATS,
-    variables: { userId: address?.toLowerCase() },
-    pause: !address,
-  });
-
-  const directInvites = referralData?.user?.level1ReferralCount ?? 0;
-  const indirectInvites = referralData?.user?.level2ReferralCount ?? 0;
+  // Fetch referral stats from subgraph using custom hook
+  const { directInvites, indirectInvites, isLoading: referralFetching } = useReferralStats(address);
 
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardDisplayItem[]>([]);
   // InviteShareModal integration

@@ -1,8 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { useGameStore } from '@/app/stores/useGameStore';
 import { useAccount } from 'wagmi';
-import { useQuery } from 'urql';
-import { GET_USER_REFERRAL_LIST, ReferralListData } from '@/services/referralQueries';
+import { useReferralList } from '@/app/hooks/useReferralData';
 import { Loader2 } from 'lucide-react';
 import { formatEther } from 'viem';
 
@@ -21,15 +20,11 @@ export function InviteListModal({ isOpen, onClose }: InviteListModalProps) {
   const { language } = useGameStore();
   const { address } = useAccount();
 
-  // Fetch referral lists from subgraph
-  const [{ data, fetching, error }] = useQuery<ReferralListData>({
-    query: GET_USER_REFERRAL_LIST,
-    variables: { userId: address?.toLowerCase() },
-    pause: !address || !isOpen,
-  });
-
-  const level1Referrals = data?.user?.level1Referrals ?? [];
-  const level2Referrals = data?.user?.level2Referrals ?? [];
+  // Fetch referral lists from subgraph using custom hook
+  const { level1Referrals, level2Referrals, isLoading: fetching } = useReferralList(
+    address,
+    isOpen
+  );
 
   return (
     <AnimatePresence>
@@ -80,7 +75,7 @@ export function InviteListModal({ isOpen, onClose }: InviteListModalProps) {
                         <div key={item.id} className="grid grid-cols-2 gap-2 px-2 py-3 hover:bg-[#00ff41]/5 border-b border-[#00ff41]/5 last:border-0 font-mono text-sm">
                           <div className="text-gray-300">{truncateAddress(item.invitee.id)}</div>
                           <div className="text-right text-[#00ff41]">
-                            +{Number(formatEther(BigInt(item.rewardAmount))).toFixed(4)} BNB
+                            +{Number(formatEther(BigInt(item.rewardAmount))).toFixed(5)} BNB
                           </div>
                         </div>
                       ))
@@ -101,7 +96,7 @@ export function InviteListModal({ isOpen, onClose }: InviteListModalProps) {
                         <div key={item.id} className="grid grid-cols-2 gap-2 px-2 py-3 hover:bg-amber-500/5 border-b border-amber-500/5 last:border-0 font-mono text-sm">
                           <div className="text-gray-300">{truncateAddress(item.invitee.id)}</div>
                           <div className="text-right text-amber-500">
-                            +{Number(formatEther(BigInt(item.rewardAmount))).toFixed(4)} BNB
+                            +{Number(formatEther(BigInt(item.rewardAmount))).toFixed(5)} BNB
                           </div>
                         </div>
                       ))

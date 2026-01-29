@@ -1,13 +1,11 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { useGameStore } from '@/app/stores/useGameStore';
-import { Copy, Users, ExternalLink, Loader2 } from 'lucide-react';
+import { Copy, Users, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { InviteListModal } from './InviteListModal';
 import { useAccount } from 'wagmi';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from 'urql';
-import { GET_USER_REFERRAL_STATS, ReferralStatsData } from '@/services/referralQueries';
+import { useReferralStats } from '@/app/hooks/useReferralData';
 
 interface InviteShareModalProps {
   isOpen: boolean;
@@ -15,21 +13,14 @@ interface InviteShareModalProps {
 }
 
 export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
-  const { language } = useGameStore();
   const { address } = useAccount();
   const { t } = useTranslation();
   const [showList, setShowList] = useState(false);
 
-  // Fetch referral stats from subgraph
-  const [{ data, fetching, error }] = useQuery<ReferralStatsData>({
-    query: GET_USER_REFERRAL_STATS,
-    variables: { userId: address?.toLowerCase() },
-    pause: !address || !isOpen,
-  });
-
-  // Extract counts from data
-  const directInvites = data?.user?.level1ReferralCount ?? 0;
-  const indirectInvites = data?.user?.level2ReferralCount ?? 0;
+  // Fetch referral stats from subgraph using custom hook
+  const { directInvites, indirectInvites, isLoading: fetching } = useReferralStats(
+    isOpen ? address : undefined
+  );
 
   // Dynamic Invite Link
   const origin = typeof window !== 'undefined' ? window.location.origin : '';

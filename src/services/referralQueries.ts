@@ -1,4 +1,4 @@
-import { gql } from 'urql';
+import { gql } from 'graphql-request';
 
 /**
  * Query to get user referral statistics (counts)
@@ -47,40 +47,40 @@ export const GET_USER_REFERRAL_LIST = gql`
 
 // TypeScript types for query responses
 export interface ReferralStatsData {
-    user: {
-        level1ReferralCount: number;
-        level2ReferralCount: number;
-        level1TotalRewards: string;
-        level2TotalRewards: string;
-        totalRewards: string;
-    } | null;
+  user: {
+    level1ReferralCount: number;
+    level2ReferralCount: number;
+    level1TotalRewards: string;
+    level2TotalRewards: string;
+    totalRewards: string;
+  } | null;
 }
 
 export interface Level1ReferralItem {
+  id: string;
+  invitee: {
     id: string;
-    invitee: {
-        id: string;
-        level1ReferralCount: number;
-    };
-    rewardAmount: string;
-    timestamp: string;
+    level1ReferralCount: number;
+  };
+  rewardAmount: string;
+  timestamp: string;
 }
 
 export interface Level2ReferralItem {
+  id: string;
+  invitee: {
     id: string;
-    invitee: {
-        id: string;
-    };
-    intermediary: {
-        id: string;
-    };
-    rewardAmount: string;
-    timestamp: string;
+  };
+  intermediary: {
+    id: string;
+  };
+  rewardAmount: string;
+  timestamp: string;
 }
 
 export interface ReferralListData {
-    user: {
-        level1Referrals: Level1ReferralItem[];
-        level2Referrals: Level2ReferralItem[];
-    } | null;
+  user: {
+    level1Referrals: Level1ReferralItem[];
+    level2Referrals: Level2ReferralItem[];
+  } | null;
 }
