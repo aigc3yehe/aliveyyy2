@@ -44,7 +44,6 @@ import { SoundManager } from '@/app/components/SoundManager';
 import { useSound } from '@/app/hooks/useSound';
 import { Volume2, Volume1, VolumeX, LogOut, Lock, HelpCircle, AlertTriangle } from 'lucide-react';
 import { InfoModal } from '@/app/components/InfoModal';
-import { ActivationModal } from '@/app/components/ActivationModal';
 import { useTranslation } from 'react-i18next';
 
 import soundLogin from '@/assets/login.mp3';
@@ -391,9 +390,6 @@ export default function Home() {
 
       {/* 桌面端暗色遮罩 */}
       <div className="hidden md:block absolute inset-0 bg-black/60" />
-
-      {/* Activation Modal - Blocks if not activated */}
-      {hasAccess && <ActivationModal />}
 
       {/* Wrong Network Banner */}
       {isWrongNetwork && (

@@ -388,15 +388,24 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       // Poll user status to sync backend state (backend checks chain state on read)
       if (currentAddress) {
-        // Simple delay to allow block propagation if needed, though waitReceipt should suffice
+        const activationOnChain = await readContract(config, {
+          address: activationContract,
+          abi: (await import('@/abis/AliveActivation.json')).default,
+          functionName: 'isActivated',
+          args: [currentAddress],
+        });
+
         // Fetch user data to trigger backend sync logic
-        const response = await api.get<{ data: UserStatusResponse }>(`/users/${currentAddress}`);
+        const response = await api.get<{ data: UserStatusResponse }>(
+          `/users/${currentAddress}?refreshActivation=true`,
+        );
         const userData = response.data.data;
+        const isActivated = Boolean(activationOnChain) || userData.activated;
 
         // Update local state
-        set({ isAccountActivated: userData.activated, isActivationChecked: true });
+        set({ isAccountActivated: isActivated, isActivationChecked: true });
         // Cache the activation status
-        if (currentAddress && userData.activated) {
+        if (isActivated) {
           setActivationCache(currentAddress, true);
         }
       } else {

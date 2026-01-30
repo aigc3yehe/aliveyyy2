@@ -1,21 +1,31 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { useGameStore } from '@/app/stores/useGameStore';
-import { useAuth } from '@/app/hooks/useAuth';
 import { toast } from 'sonner';
 import { useState, memo } from 'react';
-import { LogOut, ShoppingBag, CheckCircle } from 'lucide-react';
+import { ShoppingBag, CheckCircle, X } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 import { formatTokenCount } from '@/utils/format';
 import { useTranslation } from 'react-i18next';
 
-export const ActivationModal = memo(function ActivationModal() {
+type ActivationModalProps = {
+  isOpen?: boolean;
+  allowClose?: boolean;
+  onClose?: () => void;
+  onActivated?: () => void;
+};
+
+export const ActivationModal = memo(function ActivationModal({
+  isOpen = true,
+  allowClose = false,
+  onClose,
+  onActivated,
+}: ActivationModalProps) {
   const isAccountActivated = useGameStore(state => state.isAccountActivated);
   const isActivationChecked = useGameStore(state => state.isActivationChecked);
   const activateAccount = useGameStore(state => state.activateAccount);
   const globalStats = useGameStore(state => state.globalStats);
 
   const { t } = useTranslation();
-  const { logout } = useAuth();
   const [isActivating, setIsActivating] = useState(false);
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get('invite');
@@ -26,12 +36,13 @@ export const ActivationModal = memo(function ActivationModal() {
   // Don't show modal if:
   // 1. User is already activated (from cache or backend)
   // 2. Backend hasn't responded yet (to prevent flash)
-  if (isAccountActivated || !isActivationChecked) return null;
+  if (!isOpen || isAccountActivated || !isActivationChecked) return null;
 
   const handleActivation = async () => {
     setIsActivating(true);
     try {
       await activateAccount();
+      onActivated?.();
       toast.success(t('activationModal.success'), {
         description: t('activationModal.welcome')
       });
@@ -78,13 +89,15 @@ export const ActivationModal = memo(function ActivationModal() {
               <ShoppingBag className="w-5 h-5" />
               {t('activationModal.title')}
             </h2>
-            <button
-              onClick={logout}
-              className="text-amber-500/70 hover:text-amber-500 transition-colors"
-              title={t('activationModal.disconnect')}
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
+            {allowClose && onClose && (
+              <button
+                onClick={onClose}
+                className="text-amber-500/70 hover:text-amber-500 transition-colors"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
 
           {/* Content */}
