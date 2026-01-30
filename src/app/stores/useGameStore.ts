@@ -68,6 +68,28 @@ const setActivationCache = (address: string, activated: boolean) => {
   }
 };
 
+const AUDIO_STATE_KEY = 'alive_audio_state';
+
+const getAudioStateCache = (): GameState['audioState'] | null => {
+  try {
+    const stored = localStorage.getItem(AUDIO_STATE_KEY);
+    if (stored === 'all' || stored === 'sfx_only' || stored === 'mute') {
+      return stored;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const setAudioStateCache = (state: GameState['audioState']) => {
+  try {
+    localStorage.setItem(AUDIO_STATE_KEY, state);
+  } catch {
+    // Ignore localStorage errors
+  }
+};
+
 interface GameState {
   hp: number;
   maxHp: number;
@@ -137,7 +159,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   dopamineIndex: 1.0,
   pendingAlive: 0,
   survivalMultiplier: 1.0,
-  audioState: 'sfx_only',
+  audioState: getAudioStateCache() ?? 'sfx_only',
   language: 'en',
   claimable: 0,
   userEmissionRate: 0,
@@ -167,6 +189,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       sfx_only: 'mute',
       mute: 'all'
     }[state.audioState] as 'all' | 'sfx_only' | 'mute';
+    setAudioStateCache(nextState);
     return { audioState: nextState };
   }),
   setLanguage: (language) => {
