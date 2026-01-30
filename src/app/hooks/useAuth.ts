@@ -4,12 +4,14 @@ import { useAccount, useDisconnect, useSignMessage, useSwitchChain } from 'wagmi
 import { authService } from '../../services/auth.service';
 import { toast } from 'sonner';
 import { bsc, anvil } from 'viem/chains';
+import { useTranslation } from 'react-i18next';
 
 export function useAuth() {
     const { address, isConnected, chainId } = useAccount();
     const { disconnect } = useDisconnect();
     const { signMessageAsync } = useSignMessage();
     const { switchChain } = useSwitchChain();
+    const { t } = useTranslation();
     const [token, setToken] = useState<string | null>(localStorage.getItem('access_token'));
     const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -27,7 +29,7 @@ export function useAuth() {
         if (!address || !isConnected) return false;
         if (isWrongNetwork) {
             if (!options?.silent) {
-                toast.error('Please switch to BSC network');
+                toast.error(t('auth.switchNetwork'));
             }
             switchNetwork();
             return false;
@@ -49,13 +51,13 @@ export function useAuth() {
             localStorage.setItem('access_token', data.accessToken);
             setToken(data.accessToken);
 
-            toast.success('Successfully logged in');
+            toast.success(t('auth.loginSuccess'));
             return true;
         } catch (error) {
             console.error('Login failed:', error);
             if (!options?.silent) {
-                toast.error('Login failed', {
-                    description: 'Please try again'
+                toast.error(t('auth.loginFailed'), {
+                    description: t('auth.loginRetry')
                 });
             }
             return false;
@@ -70,7 +72,7 @@ export function useAuth() {
         localStorage.removeItem('access_token');
         setToken(null);
         disconnect();
-        toast.info('Logged out');
+        toast.info(t('auth.logout'));
     }, [disconnect]);
 
     // Handle auto-logout event from api.ts

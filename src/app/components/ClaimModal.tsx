@@ -39,7 +39,9 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
 
   const handleClaim = async () => {
     if (!walletClient) {
-      toast.error('Wallet not connected', { description: 'Please connect your wallet first.' });
+      toast.error(t('claim.walletNotConnected'), {
+        description: t('claim.connectWalletFirst'),
+      });
       return;
     }
 
@@ -60,7 +62,11 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
         setClaimState('initial');
         // Nicer error message if user rejected
         const msg = error.details || error.message || 'Unknown error';
-        setErrorMsg(msg.includes('User rejected') ? t('claim.rejected') : 'Claim failed. See console.');
+        setErrorMsg(
+          msg.includes('User rejected')
+            ? t('claim.rejected')
+            : t('claim.failedConsole'),
+        );
         toast.error(t('claim.failedToast'), {
           description: msg.slice(0, 100)
         });

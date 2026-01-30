@@ -99,6 +99,9 @@
         "dopamineIndex": "DOPAMINE_INDEX",
         "warningreset": "// WARNING: Claiming tokens resets Dopamine Index",
         "warningdelay": "// Restraint and delayed gratification yield higher rewards",
+        "walletNotConnected": "Wallet not connected",
+        "connectWalletFirst": "Please connect your wallet first.",
+        "failedConsole": "Claim failed. See console.",
         "button": {
             "claiming": "CLAIMING...",
             "continue": "Continue claiming",
@@ -115,6 +118,13 @@
         "failedToast": "Claim Failed",
         "rejected": "Transaction rejected",
         "shareText": "I just claimed {{amount}} $活着呢 in the Proof of Survival! Come and survive with me! @yeahhuozhene #ProofOfSurvival #Web3"
+    },
+    "auth": {
+        "switchNetwork": "Please switch to BSC network",
+        "loginSuccess": "Successfully logged in",
+        "loginFailed": "Login failed",
+        "loginRetry": "Please try again",
+        "logout": "Logged out"
     },
     "unconnected": {
         "readyToConnect": "READY TO CONNECT",
