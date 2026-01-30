@@ -116,14 +116,8 @@ export function StatsIndicators({
           </motion.span>
         </div>
 
-        {/* 连续存活天数 */}
-        <motion.button
-          ref={buttonRefs.days as React.RefObject<HTMLButtonElement>}
-          onClick={() => handleClick('days', buttonRefs.days as React.RefObject<HTMLButtonElement>)}
-          className="text-left group w-full"
-          whileHover={{ scale: 1.02, x: 2 }}
-          whileTap={{ scale: 0.98 }}
-        >
+        {/* 连续存活天数 - 移除点击交互 */}
+        <div className="text-left w-full">
           <div className="flex items-center justify-start gap-4">
             <span
               className="text-gray-300 font-mono text-[13px] font-bold"
@@ -132,7 +126,7 @@ export function StatsIndicators({
               {t('stats.days')}
             </span>
             <motion.span
-              className="text-[#00ff41] font-mono text-[16px] font-bold border-b border-dashed border-[#00ff41]/50 group-hover:border-[#00ff41]"
+              className="text-[#00ff41] font-mono text-[16px] font-bold"
               style={{
                 textShadow: '0px 2px 4px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,255,65,0.4)',
               }}
@@ -144,10 +138,10 @@ export function StatsIndicators({
               {displaySurvivalDays}{t('stats.dayUnit')}
             </motion.span>
           </div>
-        </motion.button>
+        </div>
 
-        {/* 连续存活系数 */}
-        <motion.button
+        {/* [HIDDEN] 连续存活系数 - 暂时隐藏 */}
+        {/* <motion.button
           ref={buttonRefs.survival as React.RefObject<HTMLButtonElement>}
           onClick={() => handleClick('survival', buttonRefs.survival as React.RefObject<HTMLButtonElement>)}
           className="text-left group w-full"
@@ -174,10 +168,10 @@ export function StatsIndicators({
               x{displaySurvivalMultiplier.toFixed(1)}
             </motion.span>
           </div>
-        </motion.button>
+        </motion.button> */}
 
-        {/* 多巴胺指数 */}
-        <motion.button
+        {/* [HIDDEN] 多巴胺指数 - 暂时隐藏 */}
+        {/* <motion.button
           ref={buttonRefs.dopamine as React.RefObject<HTMLButtonElement>}
           onClick={() => handleClick('dopamine', buttonRefs.dopamine as React.RefObject<HTMLButtonElement>)}
           className="text-left group w-full"
@@ -204,7 +198,7 @@ export function StatsIndicators({
               x{displayDopamineIndex.toFixed(1)}
             </motion.span>
           </div>
-        </motion.button>
+        </motion.button> */}
       </div>
 
       {/* 信息弹窗 */}

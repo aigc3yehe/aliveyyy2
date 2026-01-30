@@ -721,7 +721,7 @@ export default function Home() {
                   <img src={imgHealth} alt="Health" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
                 </div>
 
-                {/* 状态指标 - Health bar下方 - Moved down due to larger health bar */}
+                {/* 状态指标 - Health bar下方 - 存活系数和多巴胺指数已在组件内部隐藏 */}
                 <div className="absolute left-[12px] top-[180px] w-[240px]">
                   <StatsIndicators
                     isAlive={isAlive}
@@ -731,7 +731,8 @@ export default function Home() {
                   />
                 </div>
 
-                {/* $活着呢代币显示 - 右上角 - 失联时不显示Token Box */}
+                {/* [HIDDEN] $活着呢代币显示 - Token Box区域暂时隐藏 */}
+                {/* 保留功能按钮区域（信息、语言、音频、登出）*/}
                 {isAlive && (
                   <div className="absolute right-[37px] top-[55px] flex flex-col items-end gap-2 z-30">
                     {/* 功能按钮区域 - 并排显示 */}
@@ -790,7 +791,8 @@ export default function Home() {
                       </motion.button>
                     </div>
 
-                    <div className="flex flex-col items-end gap-2">
+                    {/* [HIDDEN] Token Box 和 Share 按钮暂时隐藏 */}
+                    {/* <div className="flex flex-col items-end gap-2">
                       <AliveTokenDisplay
                         aliveBalance={claimable}
                         pendingBalance={pendingClaim?.amount ? parseFloat(pendingClaim.amount) / 1e18 : 0}
@@ -802,7 +804,6 @@ export default function Home() {
                       />
 
 
-                      {/* Share on X Button */}
                       <motion.button
                         onClick={() => {
                           const rate = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(dailyRate);
@@ -815,7 +816,7 @@ export default function Home() {
                       >
                         <img src={imgShareX} alt="Share on X" className="w-full h-full object-contain" />
                       </motion.button>
-                    </div>
+                    </div> */}
                   </div>
                 )}
               </div>
@@ -829,8 +830,8 @@ export default function Home() {
               transform: `scale(${bottomScale})`,
             }}
           >
-            {/* Mining Rate Display - Absolute Top of this container */}
-            <div className="absolute -top-[50px] left-0 right-0 flex flex-col items-center gap-1 z-30">
+            {/* [HIDDEN] Mining Rate Display - 挖矿速率显示暂时隐藏 */}
+            {/* <div className="absolute -top-[50px] left-0 right-0 flex flex-col items-center gap-1 z-30">
               <div className="flex items-center justify-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-[#00ff41]/20 shadow-[0_0_10px_rgba(0,255,65,0.1)]">
                 <p className="text-[#00ff41]/90 font-mono text-[11px] md:text-xs text-center whitespace-nowrap">
                   {t('home.currentMiningRate')}
@@ -839,6 +840,12 @@ export default function Home() {
                   </span>
                 </p>
                 <div className="w-[1px] h-3 bg-[#00ff41]/30 mx-1"></div>
+              </div>
+            </div> */}
+
+            {/* 邀请按钮 - 单独保留 */}
+            <div className="absolute -top-[50px] left-0 right-0 flex flex-col items-center gap-1 z-30">
+              <div className="bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-[#00ff41]/20 shadow-[0_0_10px_rgba(0,255,65,0.1)]">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -851,8 +858,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Store按钮 - 左侧 */}
-            <div className="relative w-[125px] h-[116px] flex-shrink-0">
+            {/* [HIDDEN] Store按钮 - 左侧 - 暂时隐藏 */}
+            {/* <div className="relative w-[125px] h-[116px] flex-shrink-0">
               <motion.button
                 onClick={() => navigate('/store')}
                 disabled={!isConnected}
@@ -867,7 +874,7 @@ export default function Home() {
                   <Lock className="w-8 h-8 text-[#00ff41] drop-shadow-[0_0_8px_rgba(0,255,65,0.8)]" />
                 </div>
               )}
-            </div>
+            </div> */}
 
             {/* 心跳按钮 - 中间，带心跳动画 */}
             <div className="relative w-[107px] h-[116px] flex-shrink-0">
@@ -921,8 +928,8 @@ export default function Home() {
               )}
             </div>
 
-            {/* $活着呢按钮 - 右侧 */}
-            <div className="relative w-[124px] h-[116px] flex-shrink-0">
+            {/* [HIDDEN] $活着呢按钮 - 右侧 - 暂时隐藏 */}
+            {/* <div className="relative w-[124px] h-[116px] flex-shrink-0">
               <motion.button
                 onClick={() => {
                   playSound(soundToken);
@@ -940,7 +947,7 @@ export default function Home() {
                   <Lock className="w-8 h-8 text-[#00ff41] drop-shadow-[0_0_8px_rgba(0,255,65,0.8)]" />
                 </div>
               )}
-            </div>
+            </div> */}
           </div>
         </motion.div>
       </div>
