@@ -29,11 +29,12 @@ const setActivationCache = (address: string, activated: boolean) => {
 };
 
 // Fetcher for User Status + Dashboard Summary
-const userStatusFetcher = async ([_, address]: [string, string]) => {
+const userStatusFetcher = async ([_, address, refreshActivation]: [string, string, boolean]) => {
     if (!address) return null;
 
+    const refreshQuery = refreshActivation ? '?refreshActivation=true' : '';
     const [userResponse, dashboardResponse] = await Promise.all([
-        api.get<{ data: UserStatusResponse }>(`/users/${address}`),
+        api.get<{ data: UserStatusResponse }>(`/users/${address}${refreshQuery}`),
         api.get<{ data: DashboardSummaryResponse }>('/dashboard/summary')
     ]);
 
@@ -58,6 +59,23 @@ const userStatusFetcher = async ([_, address]: [string, string]) => {
     let emissionRate = 0;
     if (totalWeight > 0) {
         emissionRate = globalEmissionInTokens * (userWeightRaw / totalWeight);
+    }
+
+    // On-chain activation check (fallback to backend if missing)
+    let activationOnChain = false;
+    try {
+        const activationContract = import.meta.env.VITE_ALIVE_ACTIVATION_CONTRACT as `0x${string}`;
+        if (activationContract) {
+            const activated = await readContract(config, {
+                address: activationContract,
+                abi: (await import('@/abis/AliveActivation.json')).default,
+                functionName: 'isActivated',
+                args: [address as `0x${string}`],
+            });
+            activationOnChain = Boolean(activated);
+        }
+    } catch (err) {
+        console.error('Failed to fetch activation status:', err);
     }
 
     // Nonce Fetching
@@ -86,7 +104,8 @@ const userStatusFetcher = async ([_, address]: [string, string]) => {
             claimable,
             optimisticClaimedRewards,
             emissionRate,
-            userNonce
+            userNonce,
+            activationOnChain
         }
     };
 };
@@ -129,8 +148,9 @@ export function useUserGameData(address?: string) {
     }, [address]);
 
     // 1. Main User Status SWR
+    const shouldRefreshActivation = address ? !getActivationCache(address) : false;
     const { data: statusData, error: statusError, mutate: mutateUserStatus } = useSWR(
-        address ? ['/user-game-status', address] : null,
+        address ? ['/user-game-status', address, shouldRefreshActivation] : null,
         userStatusFetcher,
         {
             refreshInterval: 60000, // Poll every minute
@@ -170,7 +190,7 @@ export function useUserGameData(address?: string) {
                 userItems: userData.items || [],
                 userNonce: calculated.userNonce,
                 globalStats: dashboardData,
-                isAccountActivated: userData.activated,
+                isAccountActivated: Boolean(calculated.activationOnChain) || userData.activated,
                 isActivationChecked: true, // Mark that backend has responded
                 lastTickTime: Date.now(),
                 lastCheckInTime: Date.now() / 1000
