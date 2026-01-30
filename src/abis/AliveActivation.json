@@ -14,7 +14,7 @@
     },
     {
         "type": "function",
-        "name": "hasActivated",
+        "name": "isActivated",
         "inputs": [
             {
                 "name": "user",
