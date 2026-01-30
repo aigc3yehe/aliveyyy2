@@ -5,7 +5,7 @@ import { InviteShareModal } from '@/app/components/InviteShareModal';
 
 interface StatsIndicatorsProps {
   isAlive: boolean;
-  survivalDays: number;
+  aliveStreakDays: number;
   survivalMultiplier: number;
   dopamineIndex: number;
 }
@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 export function StatsIndicators({
   isAlive,
-  survivalDays,
+  aliveStreakDays,
   survivalMultiplier,
   dopamineIndex,
 }: StatsIndicatorsProps) {
@@ -24,7 +24,7 @@ export function StatsIndicators({
   const [showInviteModal, setShowInviteModal] = useState(false);
 
   // When player is dead, show fixed values
-  const displaySurvivalDays = isAlive ? survivalDays : 0;
+  const displayAliveStreakDays = isAlive ? aliveStreakDays : 0;
   const displaySurvivalMultiplier = isAlive ? survivalMultiplier : 1.0;
   const displayDopamineIndex = isAlive ? dopamineIndex : 1.0;
 
@@ -130,12 +130,12 @@ export function StatsIndicators({
               style={{
                 textShadow: '0px 2px 4px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,255,65,0.4)',
               }}
-              key={displaySurvivalDays}
+              key={displayAliveStreakDays}
               initial={{ scale: 1.2, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.2 }}
             >
-              {displaySurvivalDays}{t('stats.dayUnit')}
+              {displayAliveStreakDays}{t('stats.dayUnit')}
             </motion.span>
           </div>
         </div>

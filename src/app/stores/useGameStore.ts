@@ -11,7 +11,7 @@ export interface UserStatusResponse {
   activated: boolean; // Changed from isActivated
   hp: number;
   maxHp: number;
-  consecutiveCheckinDays: number;
+  aliveStreakDays: number;
   unclaimedDays: number;
   multiplier: number;
   claimable: string;
@@ -73,7 +73,7 @@ interface GameState {
   maxHp: number;
   lastCheckInTime: number;
   aliveBalance: number;
-  streaks: number;
+  aliveStreakDays: number;
   isAlive: boolean;
   isPending: boolean;
   dopamineIndex: number;
@@ -96,7 +96,7 @@ interface GameState {
   setHp: (hp: number) => void;
   setLastCheckInTime: (time: number) => void;
   setAliveBalance: (balance: number) => void;
-  setStreaks: (streaks: number) => void;
+  setAliveStreakDays: (aliveStreakDays: number) => void;
   setIsAlive: (isAlive: boolean) => void;
   setIsPending: (isPending: boolean) => void;
   setDopamineIndex: (index: number) => void;
@@ -119,7 +119,7 @@ export interface LeaderboardEntry {
   maxHp: number; // Added
   hpDecayPerHour: number; // Added
   lastHpUpdateAt: string | Date; // Added
-  consecutiveCheckinDays: number;
+  aliveStreakDays: number;
   unclaimedDays: number;
   multiplier: number;
   accruedRewards: string;
@@ -131,7 +131,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   maxHp: 48,
   lastCheckInTime: Date.now() / 1000,
   aliveBalance: 0,
-  streaks: 0,
+  aliveStreakDays: 0,
   isAlive: true,
   isPending: false,
   dopamineIndex: 1.0,
@@ -155,7 +155,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   setHp: (hp) => set({ hp }),
   setLastCheckInTime: (time) => set({ lastCheckInTime: time }),
   setAliveBalance: (balance) => set({ aliveBalance: balance }),
-  setStreaks: (streaks) => set({ streaks }),
+  setAliveStreakDays: (aliveStreakDays) => set({ aliveStreakDays }),
   setIsAlive: (isAlive) => set({ isAlive }),
   setIsPending: (isPending) => set({ isPending }),
   setDopamineIndex: (index) => set({ dopamineIndex: index }),
@@ -210,7 +210,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         hp: userData.hp,
         maxHp: userData.maxHp,
         isAlive: userData.status === 'ALIVE',
-        streaks: userData.consecutiveCheckinDays,
+        aliveStreakDays: userData.aliveStreakDays,
         survivalMultiplier: displaySurvivalMultiplier,
         dopamineIndex: displayDopamineIndex,
         lastCheckInTime: Date.now() / 1000,
@@ -333,7 +333,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         isAlive: userData.status === 'ALIVE',
         isAccountActivated: userData.activated,
         isActivationChecked: true,
-        streaks: userData.consecutiveCheckinDays,
+        aliveStreakDays: userData.aliveStreakDays,
         // Update user items to reflect consumed defibrillator if applicable
         userItems: userData.items || get().userItems,
       });

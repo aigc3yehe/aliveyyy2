@@ -110,7 +110,7 @@ export default function Home() {
     hp,
     maxHp,
     isAlive,
-    streaks,
+    aliveStreakDays,
     survivalMultiplier,
     dopamineIndex,
     audioState,
@@ -721,7 +721,7 @@ export default function Home() {
                 <div className="absolute left-[12px] top-[180px] w-[240px]">
                   <StatsIndicators
                     isAlive={isAlive}
-                    survivalDays={streaks}
+                    aliveStreakDays={aliveStreakDays}
                     survivalMultiplier={survivalMultiplier}
                     dopamineIndex={dopamineIndex}
                   />

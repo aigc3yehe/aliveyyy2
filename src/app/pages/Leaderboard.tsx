@@ -18,14 +18,14 @@ interface LeaderboardDisplayItem {
   address: string;
   hp: number;
   maxHp: number;
-  streaks: number;
+  aliveStreakDays: number;
   bonus: number;
   avatar: string;
 }
 
 export default function Leaderboard() {
   const { address } = useAccount();
-  const { hp, streaks, survivalMultiplier } = useGameStore();
+  const { hp, aliveStreakDays, survivalMultiplier } = useGameStore();
   const { t } = useTranslation();
 
   // Use new SWR hook for user data syncing
@@ -63,7 +63,7 @@ export default function Leaderboard() {
           address: entry.address,
           hp: currentHp || 0,
           maxHp: entry.maxHp ?? 48,
-          streaks: entry.consecutiveCheckinDays,
+          aliveStreakDays: entry.aliveStreakDays,
           bonus: entry.multiplier,
           avatar: index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤'
         };
@@ -182,12 +182,12 @@ export default function Leaderboard() {
                       </div>
                       <motion.div
                         className="text-[#00ff41] text-lg font-bold"
-                        key={streaks}
+                        key={aliveStreakDays}
                         initial={{ scale: 1.2, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.2 }}
                       >
-                        {streaks}D
+                        {aliveStreakDays}D
                       </motion.div>
                     </div>
                     <div>
@@ -307,7 +307,7 @@ export default function Leaderboard() {
                     <div className="flex items-center justify-center gap-1">
                       <TrendingUp className="w-3 h-3 text-[#00ff41]" />
                       <span className="text-gray-300 font-mono text-xs font-bold">
-                        {player.streaks}
+                        {player.aliveStreakDays}
                       </span>
                     </div>
 
