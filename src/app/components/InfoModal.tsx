@@ -62,7 +62,8 @@ export function InfoModal({ isOpen, onClose }: InfoModalProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-[100px_1fr] border-b border-[#00ff41]/30">
+            {/* [HIDDEN] 多巴胺规则 - 暂时隐藏 */}
+            {/* <div className="grid grid-cols-[100px_1fr] border-b border-[#00ff41]/30">
               <div className="p-3 bg-[#00ff41]/5 text-[#00ff41] font-bold border-r border-[#00ff41]/30">
                 {t('info.rules.dopamine')}
               </div>
@@ -78,12 +79,13 @@ export function InfoModal({ isOpen, onClose }: InfoModalProps) {
               <div className="p-3 text-gray-300">
                 {t('info.rules.claimDesc')}
               </div>
-            </div>
+            </div> */}
           </div>
 
-          <div className="p-3 border-l-2 border-yellow-500 bg-yellow-500/5 text-yellow-500/80 text-xs">
+          {/* [HIDDEN] 生存建议 - 暂时隐藏 */}
+          {/* <div className="p-3 border-l-2 border-yellow-500 bg-yellow-500/5 text-yellow-500/80 text-xs">
             {t('info.rules.survivalTip')}
-          </div>
+          </div> */}
         </div>
       )
     }

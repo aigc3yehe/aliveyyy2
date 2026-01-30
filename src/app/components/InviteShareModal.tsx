@@ -6,6 +6,8 @@ import { InviteListModal } from './InviteListModal';
 import { useAccount } from 'wagmi';
 import { useTranslation } from 'react-i18next';
 import { useReferralStats } from '@/app/hooks/useReferralData';
+import { useGameStore } from '@/app/stores/useGameStore';
+import { ActivationModal } from './ActivationModal';
 
 interface InviteShareModalProps {
   isOpen: boolean;
@@ -13,14 +15,27 @@ interface InviteShareModalProps {
 }
 
 export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
+  const isAccountActivated = useGameStore(state => state.isAccountActivated);
   const { address } = useAccount();
   const { t } = useTranslation();
   const [showList, setShowList] = useState(false);
+  const [forceActivated, setForceActivated] = useState(false);
 
   // Fetch referral stats from subgraph using custom hook
   const { directInvites, indirectInvites, isLoading: fetching } = useReferralStats(
-    isOpen ? address : undefined
+    isOpen && isAccountActivated ? address : undefined
   );
+
+  if (isOpen && !isAccountActivated && !forceActivated) {
+    return (
+      <ActivationModal
+        isOpen={isOpen}
+        allowClose
+        onClose={onClose}
+        onActivated={() => setForceActivated(true)}
+      />
+    );
+  }
 
   // Dynamic Invite Link
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
@@ -139,4 +154,3 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
     </>
   );
 }
-

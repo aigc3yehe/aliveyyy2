@@ -99,6 +99,9 @@
         "dopamineIndex": "DOPAMINE_INDEX",
         "warningreset": "// 警告：领取代币将重置多巴胺指数",
         "warningdelay": "// 保持克制，延迟满足感可获得更高收益",
+        "walletNotConnected": "钱包未连接",
+        "connectWalletFirst": "请先连接钱包。",
+        "failedConsole": "领取失败，请查看控制台。",
         "button": {
             "claiming": "领取中...",
             "continue": "继续领取",
@@ -115,6 +118,13 @@
         "failedToast": "领取失败",
         "rejected": "交易被拒绝",
         "shareText": "我在 生存证明 中领取了 {{amount}} $活着呢！快来和我一起存活吧！@yeahhuozhene #生存证明 #Web3"
+    },
+    "auth": {
+        "switchNetwork": "请切换到 BSC 网络",
+        "loginSuccess": "登录成功",
+        "loginFailed": "登录失败",
+        "loginRetry": "请稍后重试",
+        "logout": "已退出登录"
     },
     "unconnected": {
         "readyToConnect": "准备连接",

@@ -109,7 +109,7 @@ const tokenBalanceFetcher = async ([_, address]: [string, string]) => {
 
 export function useUserGameData(address?: string) {
     const {
-        setHp, setStreaks, setIsAlive, setSurvivalMultiplier, setDopamineIndex,
+        setHp, setAliveStreakDays, setIsAlive, setSurvivalMultiplier, setDopamineIndex,
         setHp: _setHp, // Duplicate destructure fix not needed if handled by Object.assign or standard setters
         setPendingAlive: _setPendingAlive, // Not used in fetch logic?
         lastTickTime: _lastTickTime
@@ -161,7 +161,7 @@ export function useUserGameData(address?: string) {
                 hp: userData.hp,
                 maxHp: userData.maxHp,
                 isAlive: userData.status === 'ALIVE',
-                streaks: userData.consecutiveCheckinDays,
+                aliveStreakDays: userData.aliveStreakDays,
                 survivalMultiplier: calculated.displaySurvivalMultiplier,
                 dopamineIndex: calculated.displayDopamineIndex,
                 claimable: calculated.claimable,

@@ -5,7 +5,7 @@ import { InviteShareModal } from '@/app/components/InviteShareModal';
 
 interface StatsIndicatorsProps {
   isAlive: boolean;
-  survivalDays: number;
+  aliveStreakDays: number;
   survivalMultiplier: number;
   dopamineIndex: number;
 }
@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 export function StatsIndicators({
   isAlive,
-  survivalDays,
+  aliveStreakDays,
   survivalMultiplier,
   dopamineIndex,
 }: StatsIndicatorsProps) {
@@ -24,7 +24,7 @@ export function StatsIndicators({
   const [showInviteModal, setShowInviteModal] = useState(false);
 
   // When player is dead, show fixed values
-  const displaySurvivalDays = isAlive ? survivalDays : 0;
+  const displayAliveStreakDays = isAlive ? aliveStreakDays : 0;
   const displaySurvivalMultiplier = isAlive ? survivalMultiplier : 1.0;
   const displayDopamineIndex = isAlive ? dopamineIndex : 1.0;
 
@@ -116,14 +116,8 @@ export function StatsIndicators({
           </motion.span>
         </div>
 
-        {/* 连续存活天数 */}
-        <motion.button
-          ref={buttonRefs.days as React.RefObject<HTMLButtonElement>}
-          onClick={() => handleClick('days', buttonRefs.days as React.RefObject<HTMLButtonElement>)}
-          className="text-left group w-full"
-          whileHover={{ scale: 1.02, x: 2 }}
-          whileTap={{ scale: 0.98 }}
-        >
+        {/* 连续存活天数 - 移除点击交互 */}
+        <div className="text-left w-full">
           <div className="flex items-center justify-start gap-4">
             <span
               className="text-gray-300 font-mono text-[13px] font-bold"
@@ -132,22 +126,22 @@ export function StatsIndicators({
               {t('stats.days')}
             </span>
             <motion.span
-              className="text-[#00ff41] font-mono text-[16px] font-bold border-b border-dashed border-[#00ff41]/50 group-hover:border-[#00ff41]"
+              className="text-[#00ff41] font-mono text-[16px] font-bold"
               style={{
                 textShadow: '0px 2px 4px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,255,65,0.4)',
               }}
-              key={displaySurvivalDays}
+              key={displayAliveStreakDays}
               initial={{ scale: 1.2, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.2 }}
             >
-              {displaySurvivalDays}{t('stats.dayUnit')}
+              {displayAliveStreakDays}{t('stats.dayUnit')}
             </motion.span>
           </div>
-        </motion.button>
+        </div>
 
-        {/* 连续存活系数 */}
-        <motion.button
+        {/* [HIDDEN] 连续存活系数 - 暂时隐藏 */}
+        {/* <motion.button
           ref={buttonRefs.survival as React.RefObject<HTMLButtonElement>}
           onClick={() => handleClick('survival', buttonRefs.survival as React.RefObject<HTMLButtonElement>)}
           className="text-left group w-full"
@@ -174,10 +168,10 @@ export function StatsIndicators({
               x{displaySurvivalMultiplier.toFixed(1)}
             </motion.span>
           </div>
-        </motion.button>
+        </motion.button> */}
 
-        {/* 多巴胺指数 */}
-        <motion.button
+        {/* [HIDDEN] 多巴胺指数 - 暂时隐藏 */}
+        {/* <motion.button
           ref={buttonRefs.dopamine as React.RefObject<HTMLButtonElement>}
           onClick={() => handleClick('dopamine', buttonRefs.dopamine as React.RefObject<HTMLButtonElement>)}
           className="text-left group w-full"
@@ -204,7 +198,7 @@ export function StatsIndicators({
               x{displayDopamineIndex.toFixed(1)}
             </motion.span>
           </div>
-        </motion.button>
+        </motion.button> */}
       </div>
 
       {/* 信息弹窗 */}

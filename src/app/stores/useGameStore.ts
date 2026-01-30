@@ -11,7 +11,7 @@ export interface UserStatusResponse {
   activated: boolean; // Changed from isActivated
   hp: number;
   maxHp: number;
-  consecutiveCheckinDays: number;
+  aliveStreakDays: number;
   unclaimedDays: number;
   multiplier: number;
   claimable: string;
@@ -68,12 +68,34 @@ const setActivationCache = (address: string, activated: boolean) => {
   }
 };
 
+const AUDIO_STATE_KEY = 'alive_audio_state';
+
+const getAudioStateCache = (): GameState['audioState'] | null => {
+  try {
+    const stored = localStorage.getItem(AUDIO_STATE_KEY);
+    if (stored === 'all' || stored === 'sfx_only' || stored === 'mute') {
+      return stored;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const setAudioStateCache = (state: GameState['audioState']) => {
+  try {
+    localStorage.setItem(AUDIO_STATE_KEY, state);
+  } catch {
+    // Ignore localStorage errors
+  }
+};
+
 interface GameState {
   hp: number;
   maxHp: number;
   lastCheckInTime: number;
   aliveBalance: number;
-  streaks: number;
+  aliveStreakDays: number;
   isAlive: boolean;
   isPending: boolean;
   dopamineIndex: number;
@@ -96,7 +118,7 @@ interface GameState {
   setHp: (hp: number) => void;
   setLastCheckInTime: (time: number) => void;
   setAliveBalance: (balance: number) => void;
-  setStreaks: (streaks: number) => void;
+  setAliveStreakDays: (aliveStreakDays: number) => void;
   setIsAlive: (isAlive: boolean) => void;
   setIsPending: (isPending: boolean) => void;
   setDopamineIndex: (index: number) => void;
@@ -119,7 +141,7 @@ export interface LeaderboardEntry {
   maxHp: number; // Added
   hpDecayPerHour: number; // Added
   lastHpUpdateAt: string | Date; // Added
-  consecutiveCheckinDays: number;
+  aliveStreakDays: number;
   unclaimedDays: number;
   multiplier: number;
   accruedRewards: string;
@@ -131,13 +153,13 @@ export const useGameStore = create<GameState>((set, get) => ({
   maxHp: 48,
   lastCheckInTime: Date.now() / 1000,
   aliveBalance: 0,
-  streaks: 0,
+  aliveStreakDays: 0,
   isAlive: true,
   isPending: false,
   dopamineIndex: 1.0,
   pendingAlive: 0,
   survivalMultiplier: 1.0,
-  audioState: 'sfx_only',
+  audioState: getAudioStateCache() ?? 'sfx_only',
   language: 'en',
   claimable: 0,
   userEmissionRate: 0,
@@ -155,7 +177,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   setHp: (hp) => set({ hp }),
   setLastCheckInTime: (time) => set({ lastCheckInTime: time }),
   setAliveBalance: (balance) => set({ aliveBalance: balance }),
-  setStreaks: (streaks) => set({ streaks }),
+  setAliveStreakDays: (aliveStreakDays) => set({ aliveStreakDays }),
   setIsAlive: (isAlive) => set({ isAlive }),
   setIsPending: (isPending) => set({ isPending }),
   setDopamineIndex: (index) => set({ dopamineIndex: index }),
@@ -167,6 +189,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       sfx_only: 'mute',
       mute: 'all'
     }[state.audioState] as 'all' | 'sfx_only' | 'mute';
+    setAudioStateCache(nextState);
     return { audioState: nextState };
   }),
   setLanguage: (language) => {
@@ -210,7 +233,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         hp: userData.hp,
         maxHp: userData.maxHp,
         isAlive: userData.status === 'ALIVE',
-        streaks: userData.consecutiveCheckinDays,
+        aliveStreakDays: userData.aliveStreakDays,
         survivalMultiplier: displaySurvivalMultiplier,
         dopamineIndex: displayDopamineIndex,
         lastCheckInTime: Date.now() / 1000,
@@ -333,7 +356,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         isAlive: userData.status === 'ALIVE',
         isAccountActivated: userData.activated,
         isActivationChecked: true,
-        streaks: userData.consecutiveCheckinDays,
+        aliveStreakDays: userData.aliveStreakDays,
         // Update user items to reflect consumed defibrillator if applicable
         userItems: userData.items || get().userItems,
       });
@@ -388,15 +411,24 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       // Poll user status to sync backend state (backend checks chain state on read)
       if (currentAddress) {
-        // Simple delay to allow block propagation if needed, though waitReceipt should suffice
+        const activationOnChain = await readContract(config, {
+          address: activationContract,
+          abi: (await import('@/abis/AliveActivation.json')).default,
+          functionName: 'isActivated',
+          args: [currentAddress],
+        });
+
         // Fetch user data to trigger backend sync logic
-        const response = await api.get<{ data: UserStatusResponse }>(`/users/${currentAddress}`);
+        const response = await api.get<{ data: UserStatusResponse }>(
+          `/users/${currentAddress}?refreshActivation=true`,
+        );
         const userData = response.data.data;
+        const isActivated = Boolean(activationOnChain) || userData.activated;
 
         // Update local state
-        set({ isAccountActivated: userData.activated, isActivationChecked: true });
+        set({ isAccountActivated: isActivated, isActivationChecked: true });
         // Cache the activation status
-        if (currentAddress && userData.activated) {
+        if (isActivated) {
           setActivationCache(currentAddress, true);
         }
       } else {

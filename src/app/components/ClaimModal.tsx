@@ -39,7 +39,9 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
 
   const handleClaim = async () => {
     if (!walletClient) {
-      toast.error('Wallet not connected', { description: 'Please connect your wallet first.' });
+      toast.error(t('claim.walletNotConnected'), {
+        description: t('claim.connectWalletFirst'),
+      });
       return;
     }
 
@@ -60,7 +62,11 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
         setClaimState('initial');
         // Nicer error message if user rejected
         const msg = error.details || error.message || 'Unknown error';
-        setErrorMsg(msg.includes('User rejected') ? t('claim.rejected') : 'Claim failed. See console.');
+        setErrorMsg(
+          msg.includes('User rejected')
+            ? t('claim.rejected')
+            : t('claim.failedConsole'),
+        );
         toast.error(t('claim.failedToast'), {
           description: msg.slice(0, 100)
         });
@@ -80,11 +86,13 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
   };
 
   return (
+    <>
     <AnimatePresence mode="wait">
       {isOpen && (
         <>
           {/* 背景遮罩 */}
           <motion.div
+            key="backdrop"
             className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -308,11 +316,14 @@ export function ClaimModal({ isOpen, onClose, pendingClaim }: ClaimModalProps) {
         </>
       )}
 
-      {/* Invite Share Modal */}
-      <InviteShareModal
-        isOpen={showInviteModal}
-        onClose={() => setShowInviteModal(false)}
-      />
+
     </AnimatePresence>
+
+    {/* Invite Share Modal - Rendered outside AnimatePresence to avoid key conflicts */}
+    <InviteShareModal
+      isOpen={showInviteModal}
+      onClose={() => setShowInviteModal(false)}
+    />
+    </>
   );
 }
