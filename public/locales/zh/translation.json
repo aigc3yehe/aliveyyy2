@@ -179,6 +179,7 @@
         "success": "账户激活成功！",
         "welcome": "欢迎来到生存证明。",
         "failed": "激活失败",
+        "referrerInactive": "推荐人未激活，将使用默认地址",
         "title": "需要激活",
         "disconnect": "断开钱包",
         "description": "为了开始您的生存之旅，需要支付一次性激活费用。",
@@ -200,7 +201,9 @@
         "indirectInvites": "间接邀请",
         "promo": "直接邀请朋友赚取 33% 的激活BNB费用，间接邀请朋友赚取 13% 的激活BNB费用。",
         "copy": "复制",
-        "viewDetails": "查看邀请信息"
+        "viewDetails": "查看邀请信息",
+        "goActivate": "去激活",
+        "notActivated": "你的账户未激活，无法获得奖励"
     },
     "invite": {
         "shortPromo": "邀请你的朋友！",

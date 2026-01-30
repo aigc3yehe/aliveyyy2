@@ -16,26 +16,17 @@ interface InviteShareModalProps {
 
 export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
   const isAccountActivated = useGameStore(state => state.isAccountActivated);
+  const isActivationChecked = useGameStore(state => state.isActivationChecked);
   const { address } = useAccount();
   const { t } = useTranslation();
   const [showList, setShowList] = useState(false);
-  const [forceActivated, setForceActivated] = useState(false);
+  const [showActivationModal, setShowActivationModal] = useState(false);
 
   // Fetch referral stats from subgraph using custom hook
   const { directInvites, indirectInvites, isLoading: fetching } = useReferralStats(
     isOpen && isAccountActivated ? address : undefined
   );
-
-  if (isOpen && !isAccountActivated && !forceActivated) {
-    return (
-      <ActivationModal
-        isOpen={isOpen}
-        allowClose
-        onClose={onClose}
-        onActivated={() => setForceActivated(true)}
-      />
-    );
-  }
+  const isActivationReady = isActivationChecked && isAccountActivated;
 
   // Dynamic Invite Link
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
@@ -111,6 +102,11 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
                   </div>
 
                   {/* Link Section */}
+                  {!isActivationReady && (
+                    <p className="text-amber-200/80 font-mono text-xs text-center">
+                      {t('inviteShareModal.notActivated')}
+                    </p>
+                  )}
                   <div className="bg-black border border-amber-500/50 rounded-lg p-1 pl-3 flex items-center gap-2">
                     <div className="flex-1 font-mono text-gray-300 text-sm truncate select-all">
                       {inviteLink}
@@ -126,11 +122,17 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
 
                   {/* View Details Button */}
                   <button
-                    onClick={() => setShowList(true)}
+                    onClick={() =>
+                      isActivationReady
+                        ? setShowList(true)
+                        : setShowActivationModal(true)
+                    }
                     className="w-full py-3 text-amber-500/80 hover:text-amber-500 border border-amber-500/30 hover:border-amber-500/60 rounded-lg text-sm font-mono flex items-center justify-center gap-2 transition-all"
                   >
                     <Users className="w-4 h-4" />
-                    {t('inviteShareModal.viewDetails')}
+                    {isActivationReady
+                      ? t('inviteShareModal.viewDetails')
+                      : t('inviteShareModal.goActivate')}
                   </button>
                 </div>
 
@@ -150,6 +152,11 @@ export function InviteShareModal({ isOpen, onClose }: InviteShareModalProps) {
       <InviteListModal
         isOpen={showList}
         onClose={() => setShowList(false)}
+      />
+      <ActivationModal
+        isOpen={showActivationModal}
+        allowClose
+        onClose={() => setShowActivationModal(false)}
       />
     </>
   );

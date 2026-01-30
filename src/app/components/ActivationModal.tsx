@@ -1,11 +1,16 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { useGameStore } from '@/app/stores/useGameStore';
 import { toast } from 'sonner';
-import { useState, memo } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { ShoppingBag, CheckCircle, X } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 import { formatTokenCount } from '@/utils/format';
 import { useTranslation } from 'react-i18next';
+import { useAccount } from 'wagmi';
+import { isAddress } from 'viem';
+import { readContract } from '@wagmi/core';
+import { config } from '@/config/wagmi';
+import AliveActivationABI from '@/abis/AliveActivation.json';
 
 type ActivationModalProps = {
   isOpen?: boolean;
@@ -21,27 +26,77 @@ export const ActivationModal = memo(function ActivationModal({
   onActivated,
 }: ActivationModalProps) {
   const isAccountActivated = useGameStore(state => state.isAccountActivated);
-  const isActivationChecked = useGameStore(state => state.isActivationChecked);
   const activateAccount = useGameStore(state => state.activateAccount);
   const globalStats = useGameStore(state => state.globalStats);
+  const { address: currentAddress } = useAccount();
 
   const { t } = useTranslation();
   const [isActivating, setIsActivating] = useState(false);
+  const [referrerNotice, setReferrerNotice] = useState<string>('');
+  const [isReferrerChecking, setIsReferrerChecking] = useState(false);
+  const [resolvedReferrer, setResolvedReferrer] = useState<`0x${string}`>(
+    '0x0000000000000000000000000000000000000000',
+  );
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get('invite');
+  const inviteAddress = inviteCode && isAddress(inviteCode) ? inviteCode : null;
+  const isSelfReferral =
+    inviteAddress &&
+    currentAddress &&
+    inviteAddress.toLowerCase() === currentAddress.toLowerCase();
 
-  // Debug log
-  console.log('ActivationModal render:', { isAccountActivated, isActivationChecked, inviteCode });
+  useEffect(() => {
+    if (!isOpen) return;
+    setReferrerNotice('');
+    setResolvedReferrer('0x0000000000000000000000000000000000000000');
 
-  // Don't show modal if:
-  // 1. User is already activated (from cache or backend)
-  // 2. Backend hasn't responded yet (to prevent flash)
-  if (!isOpen || isAccountActivated || !isActivationChecked) return null;
+    if (!inviteAddress || !currentAddress || isSelfReferral) {
+      if (inviteAddress && isSelfReferral) {
+        setReferrerNotice(t('activationModal.referrerInactive'));
+      }
+      return;
+    }
+
+    const checkReferrer = async () => {
+      setIsReferrerChecking(true);
+      try {
+        const activationContract = import.meta.env
+          .VITE_ALIVE_ACTIVATION_CONTRACT as `0x${string}`;
+        if (!activationContract) {
+          setReferrerNotice(t('activationModal.referrerInactive'));
+          return;
+        }
+        const activated = await readContract(config, {
+          address: activationContract,
+          abi: AliveActivationABI,
+          functionName: 'isActivated',
+          args: [inviteAddress],
+        });
+        if (activated) {
+          setResolvedReferrer(inviteAddress);
+        } else {
+          setReferrerNotice(t('activationModal.referrerInactive'));
+        }
+      } catch (error) {
+        setReferrerNotice(t('activationModal.referrerInactive'));
+      } finally {
+        setIsReferrerChecking(false);
+      }
+    };
+
+    checkReferrer();
+  }, [currentAddress, inviteAddress, isOpen, isSelfReferral, t]);
+
+  // Don't show modal if user already activated or not requested to open.
+  if (!isOpen || isAccountActivated) return null;
 
   const handleActivation = async () => {
+    if (isReferrerChecking) {
+      return;
+    }
     setIsActivating(true);
     try {
-      await activateAccount();
+      await activateAccount(resolvedReferrer);
       onActivated?.();
       toast.success(t('activationModal.success'), {
         description: t('activationModal.welcome')
@@ -79,7 +134,7 @@ export const ActivationModal = memo(function ActivationModal({
     <AnimatePresence>
       <motion.div
         key="activation-modal-overlay"
-        className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-auto"
+        className="fixed inset-0 z-[120] flex items-center justify-center pointer-events-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -163,15 +218,15 @@ export const ActivationModal = memo(function ActivationModal({
             {/* Action Button */}
             <button
               onClick={handleActivation}
-              disabled={isActivating}
+              disabled={isActivating || isReferrerChecking}
               className={`w-full py-4 font-mono text-lg font-bold uppercase tracking-wider transition-all duration-200 border-2 rounded-lg flex items-center justify-center gap-2
-                ${isActivating
+                ${isActivating || isReferrerChecking
                   ? 'bg-amber-900/20 border-amber-800 text-amber-700 cursor-not-allowed'
                   : 'bg-gradient-to-r from-[#00ff41] to-[#008f11] hover:from-[#00ff41] hover:to-[#00cc33] border-transparent text-black shadow-[0_0_20px_rgba(0,255,65,0.4)]'
                 }
               `}
             >
-              {isActivating
+              {isActivating || isReferrerChecking
                 ? t('activationModal.processing')
                 : (
                   <>
@@ -189,9 +244,22 @@ export const ActivationModal = memo(function ActivationModal({
 
               {/* Referrer Info */}
               {inviteCode && (
-                <p className="text-center text-gray-500 text-[10px] font-mono border-t border-gray-800 pt-2 mt-2">
-                  {t('activationModal.referrer', { code: inviteCode })}
-                </p>
+                <>
+                  {referrerNotice ? (
+                    <>
+                      <p className="text-center text-amber-400 text-[10px] font-mono border-t border-gray-800 pt-2 mt-2">
+                        {referrerNotice}
+                      </p>
+                      <p className="text-center text-gray-500 text-[10px] font-mono pt-1">
+                        {t('activationModal.referrer', { code: inviteCode })}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-center text-gray-500 text-[10px] font-mono border-t border-gray-800 pt-2 mt-2">
+                      {t('activationModal.referrer', { code: inviteCode })}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           </div>

@@ -179,6 +179,7 @@
         "success": "Account Activated!",
         "welcome": "Welcome to Alive.",
         "failed": "Activation Failed",
+        "referrerInactive": "Referrer is not activated. Rewards will be disabled.",
         "title": "ACTIVATION REQUIRED",
         "disconnect": "Disconnect Wallet",
         "description": "To initiate your survival journey, a one-time activation fee is required.",
@@ -200,7 +201,9 @@
         "indirectInvites": "Indirect Invites",
         "promo": "Directly invite friends to earn 33% of the activation BNB fee, and indirectly invite friends to earn 13%.",
         "copy": "COPY",
-        "viewDetails": "View Invite Details"
+        "viewDetails": "View Invite Details",
+        "goActivate": "Activate",
+        "notActivated": "Your account is not activated. Rewards are unavailable."
     },
     "invite": {
         "shortPromo": "Invite your friends!",

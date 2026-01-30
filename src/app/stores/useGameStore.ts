@@ -132,7 +132,7 @@ interface GameState {
   claimRewards: (walletClient: WalletClient) => Promise<{ hash: string; amount: number }>; // Changed signature to return amount
   buyItem: (item: ShopItem, walletClient: WalletClient) => Promise<void>;
   reconnect: (mode: 'standard' | 'defibrillator') => Promise<void>;
-  activateAccount: () => Promise<void>; // PROTOTYPE: Simulate activation payment
+  activateAccount: (referrerOverride?: string) => Promise<void>; // PROTOTYPE: Simulate activation payment
 }
 
 export interface LeaderboardEntry {
@@ -368,29 +368,17 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-  activateAccount: async () => {
+  activateAccount: async (referrerOverride?: string) => {
     try {
       const activationContract = import.meta.env.VITE_ALIVE_ACTIVATION_CONTRACT as `0x${string}`;
       const defaultFee = import.meta.env.VITE_ACTIVATION_FEE || '0.015';
       const fee = parseEther(defaultFee);
 
-      // Get referrer from URL/Storage
-      const urlParams = new URLSearchParams(window.location.search);
-      const inviteCode = urlParams.get('invite');
-
-      // Get current user address to prevent self-referral
-      const { address: currentAddress } = getAccount(config);
-
       // Default referrer is burn address / zero address if invalid or missing
       let referrer = '0x0000000000000000000000000000000000000000';
 
-      if (inviteCode && isAddress(inviteCode)) {
-        // Check if referrer is not self
-        if (currentAddress && inviteCode.toLowerCase() === currentAddress.toLowerCase()) {
-          console.warn('Self-referral detected, ignoring referrer');
-        } else {
-          referrer = inviteCode;
-        }
+      if (referrerOverride && isAddress(referrerOverride)) {
+        referrer = referrerOverride;
       }
 
       console.log('Activating with referrer:', referrer, 'Fee:', defaultFee);
@@ -410,6 +398,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       await waitForTransactionReceipt(config, { hash });
 
       // Poll user status to sync backend state (backend checks chain state on read)
+      const { address: currentAddress } = getAccount(config);
       if (currentAddress) {
         const activationOnChain = await readContract(config, {
           address: activationContract,
