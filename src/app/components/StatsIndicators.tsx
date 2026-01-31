@@ -92,6 +92,11 @@ export function StatsIndicators({
   return (
     <>
       <div className="flex flex-col gap-2 p-3 border-none rounded-lg">
+        {/* Beta Version Warning */}
+        <div className="bg-orange-500 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded text-center mb-2 shadow-[0_0_10px_rgba(249,115,22,0.4)] border border-orange-400">
+          {t('beta.miningNotEnabled')}
+        </div>
+
         {/* 状态显示 */}
         <div className="flex items-center justify-start gap-4 pb-2 mb-1">
           <span

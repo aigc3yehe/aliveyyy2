@@ -217,5 +217,8 @@
         "indirectInvites": "INDIRECT INVITES ({{count}})",
         "noDirect": "No direct invites yet",
         "noIndirect": "No indirect invites yet"
+    },
+    "beta": {
+        "miningNotEnabled": "Beta version, $活着呢 mining is not yet enabled"
     }
 }

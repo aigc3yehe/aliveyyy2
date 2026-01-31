@@ -268,7 +268,7 @@ export function UnconnectedScreen({ onLogin }: UnconnectedScreenProps) {
                   </motion.span>
                 </motion.div>
 
-                {/* 今日奖池 */}
+                {/* [HIDDEN] 今日奖池
                 <div className="bg-gray-900/50 border border-yellow-500/30 p-3 flex items-center justify-between">
                   <span className="text-gray-400 font-mono text-xs md:text-sm">
                     {t('unconnected.todaysPrizePool')}
@@ -277,6 +277,7 @@ export function UnconnectedScreen({ onLogin }: UnconnectedScreenProps) {
                     {formatTokenCount(stats.todayPool)}
                   </span>
                 </div>
+                */}
 
                 {/* 今日阵亡 */}
                 <motion.div
