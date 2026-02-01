@@ -1,7 +1,7 @@
 import { GraphQLClient, gql } from 'graphql-request';
 
 // The Graph Subgraph API endpoint
-const SUBGRAPH_URL = 'https://api.studio.thegraph.com/query/1724416/bsc-alive-referral/version/latest';
+const SUBGRAPH_URL = 'https://api.studio.thegraph.com/query/1724647/alivealive/version/latest';
 
 // Create GraphQL client
 export const subgraphClient = new GraphQLClient(SUBGRAPH_URL);
