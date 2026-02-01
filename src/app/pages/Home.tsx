@@ -675,12 +675,12 @@ export default function Home() {
                 {/* Twitter Link - Right aligned */}
                 <div className="absolute right-[34px] top-[24px] z-20 h-4 flex items-center">
                   <a
-                    href="https://twitter.com/yeahhuozhene"
+                    href="https://twitter.com/huozhene69"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#00ff41] font-mono text-xs font-bold drop-shadow-[0_0_4px_rgba(0,255,65,0.8)] hover:underline"
                   >
-                    @yeahhuozhene
+                    @huozhene69
                   </a>
                 </div>
 

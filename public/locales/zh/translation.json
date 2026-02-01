@@ -66,7 +66,7 @@
         "currentMiningRate": "当前挖矿速率",
         "tokenPerDay": "$活着呢/天",
         "tellFriends": "告诉你的朋友！",
-        "miningRateShare": "我在 生存证明 当前挖矿速率是 {{rate}} $活着呢/天！你能活得比我久吗？@yeahhuozhene #生存证明 #Web3",
+        "miningRateShare": "我在 生存证明 当前挖矿速率是 {{rate}} $活着呢/天！你能活得比我久吗？@huozhene69 #生存证明 #Web3",
         "checkin": {
             "success": "签到成功！",
             "hpPlus": "HP +1",
@@ -117,7 +117,7 @@
         "receivedToast": "获得 {{amount}} $活着呢",
         "failedToast": "领取失败",
         "rejected": "交易被拒绝",
-        "shareText": "我在 生存证明 中领取了 {{amount}} $活着呢！快来和我一起存活吧！@yeahhuozhene #生存证明 #Web3"
+        "shareText": "我在 生存证明 中领取了 {{amount}} $活着呢！快来和我一起存活吧！@huozhene69 #生存证明 #Web3"
     },
     "auth": {
         "switchNetwork": "请切换到 BSC 网络",
