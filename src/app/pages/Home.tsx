@@ -156,7 +156,7 @@ export default function Home() {
 
   // Hoisted claim data fetching
   const { data: pendingClaim } = useSWR<{ id: string; nonce: string; amount: string }>(
-    isConnected && userNonce !== undefined ? `/claims/${userNonce}` : null,
+    isConnected && isAuthenticated && userNonce !== undefined ? `/claims/${userNonce}` : null,
     fetcher
   ); // Note: Need to import api/fetcher or use existing one if available. 
   // Home.tsx doesn't import 'fetcher' directly from '@/services/api' yet, checking imports...

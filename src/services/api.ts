@@ -31,12 +31,12 @@ api.interceptors.response.use(
     },
     (error) => {
         if (error.response && error.response.status === 401) {
-            // Clear token and redirect to home/login if needed
-            // We'll let the useAuth hook handle the state update via event listener or improved logic later
-            // For now, just clear storage
-            localStorage.removeItem('access_token');
-            // Optionally trigger a custom event that useAuth can listen to
-            window.dispatchEvent(new Event('auth:unauthorized'));
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                // Clear token and notify auth state only when a token exists
+                localStorage.removeItem('access_token');
+                window.dispatchEvent(new Event('auth:unauthorized'));
+            }
         }
         return Promise.reject(error);
     }
